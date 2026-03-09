@@ -85,16 +85,19 @@ export default function SetupWizard() {
         const windowDurationSeconds = 7 * 86400;
 
         return [
-            {
-                contractAddress: GHOST_VAULT_ADDRESS,
-                entrypoint: "create_vault",
-                calldata: [beneficiary, periodSeconds.toString(), windowDurationSeconds.toString()]
-            },
+            // 1. Approve token transfer to vault contract
             {
                 contractAddress: selectedToken.address,
                 entrypoint: "approve",
                 calldata: [GHOST_VAULT_ADDRESS, amountU256.low, amountU256.high]
             },
+            // 2. Create the vault with beneficiary + schedule
+            {
+                contractAddress: GHOST_VAULT_ADDRESS,
+                entrypoint: "create_vault",
+                calldata: [beneficiary, periodSeconds.toString(), windowDurationSeconds.toString()]
+            },
+            // 3. Deposit approved tokens into the vault
             {
                 contractAddress: GHOST_VAULT_ADDRESS,
                 entrypoint: "deposit",
@@ -210,24 +213,43 @@ export default function SetupWizard() {
 
     const renderStep4 = () => (
         <div className="animate-fade-in-up">
-            <h2 className="text-2xl font-display font-semibold mb-6 text-[var(--text-primary)] tracking-tight">Review & Confirm</h2>
+            <h2 className="text-2xl font-display font-semibold mb-2 text-[var(--text-primary)] tracking-tight">Review & Confirm</h2>
+            <p className="text-[var(--text-secondary)] text-sm mb-6">Your wallet will ask you to sign <strong className="text-white">1 multicall</strong> containing 3 operations.</p>
 
-            <div className="bg-[var(--bg-page)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] p-6 space-y-5 font-mono text-sm">
-                <div className="flex justify-between border-b border-[var(--border-subtle)] pb-4">
-                    <span className="text-[var(--text-secondary)]">Total Deposit</span>
-                    <span className="text-[var(--text-primary)] font-bold text-base">{depositAmount || "0"} BTC</span>
+            {/* Tx breakdown */}
+            <div className="flex flex-col gap-2 mb-6">
+                {[
+                    { step: "01", label: `Approve ${depositAmount || "0"} ${selectedToken.symbol}`, sub: "Allows vault contract to receive your tokens", color: selectedToken.color },
+                    { step: "02", label: "Create Vault", sub: `Beneficiary · ${checkinPeriod}d check-in period`, color: "text-zinc-400" },
+                    { step: "03", label: `Deposit ${depositAmount || "0"} ${selectedToken.symbol}`, sub: "Locks tokens into the vault, timer starts", color: selectedToken.color },
+                ].map(({ step, label, sub, color }) => (
+                    <div key={step} className="flex items-start gap-3 p-4 rounded-xl bg-[var(--bg-page)] border border-[var(--border-subtle)]">
+                        <span className="text-xs font-mono text-zinc-600 mt-0.5 w-5 shrink-0">{step}</span>
+                        <div>
+                            <p className={`text-sm font-semibold ${color}`}>{label}</p>
+                            <p className="text-xs text-zinc-600 mt-0.5">{sub}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Summary */}
+            <div className="bg-[var(--bg-page)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] p-5 space-y-3 font-mono text-sm">
+                <div className="flex justify-between">
+                    <span className="text-zinc-500">Total Deposit</span>
+                    <span className={`font-bold ${selectedToken.color}`}>{depositAmount || "0"} {selectedToken.symbol}</span>
                 </div>
-                <div className="flex justify-between border-b border-[var(--border-subtle)] pb-4">
-                    <span className="text-[var(--text-secondary)]">Strategy</span>
-                    <span className="text-[var(--text-primary)]">{selectedTier.name} <span className="text-[var(--success)]">({selectedTier.apy})</span></span>
+                <div className="flex justify-between">
+                    <span className="text-zinc-500">Strategy</span>
+                    <span className="text-zinc-300">{selectedTier.name} <span className="text-emerald-400">({selectedTier.apy})</span></span>
                 </div>
-                <div className="flex justify-between border-b border-[var(--border-subtle)] pb-4">
-                    <span className="text-[var(--text-secondary)]">Check-in Period</span>
-                    <span className="text-[var(--accent-primary)] font-bold">{checkinPeriod} Days</span>
+                <div className="flex justify-between">
+                    <span className="text-zinc-500">Check-in Period</span>
+                    <span className="text-amber-400 font-bold">{checkinPeriod} Days</span>
                 </div>
-                <div className="pt-2">
-                    <span className="text-[var(--text-secondary)] block mb-2">Beneficiary Address</span>
-                    <span className="text-[var(--text-primary)] break-all text-xs opacity-80">{beneficiary || "Not set"}</span>
+                <div className="pt-2 border-t border-[var(--border-subtle)]">
+                    <span className="text-zinc-500 block mb-1">Beneficiary</span>
+                    <span className="text-zinc-400 break-all text-xs">{beneficiary || "Not set"}</span>
                 </div>
             </div>
         </div>
