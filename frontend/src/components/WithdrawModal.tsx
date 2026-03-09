@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useSendTransaction } from "@starknet-react/core";
 import { GHOST_VAULT_ADDRESS } from "@/lib/contract";
+import { uint256 } from "starknet";
 
 interface WithdrawModalProps {
     isOpen: boolean;
@@ -14,9 +15,15 @@ export default function WithdrawModal({ isOpen, onClose, principal }: WithdrawMo
     const [amount, setAmount] = useState("");
 
     const calls = useMemo(() => {
-        // Technically this contract does not support partial withdraws or canceling yet based on lib.cairo
-        // But we will mock the functionality to prepare the UI for the next contract version
-        return [];
+        if (!amount || isNaN(parseFloat(amount))) return [];
+        const amountWei = BigInt(Math.floor(parseFloat(amount) * 1e18));
+        const amountU256 = uint256.bnToUint256(amountWei);
+
+        return [{
+            contractAddress: GHOST_VAULT_ADDRESS,
+            entrypoint: "withdraw",
+            calldata: [amountU256.low, amountU256.high]
+        }];
     }, [amount]);
 
     const { send, isPending, data } = useSendTransaction({ calls });
@@ -44,23 +51,32 @@ export default function WithdrawModal({ isOpen, onClose, principal }: WithdrawMo
                 </div>
 
                 <div className="space-y-4">
-                    <button
-                        disabled={true}
-                        className="w-full py-4 bg-gray-800 text-gray-500 font-bold rounded-xl border border-gray-700 cursor-not-allowed flex justify-between items-center px-6"
-                    >
-                        <span>Partial Withdraw</span>
-                        <span className="text-xs bg-gray-900 px-2 py-1 rounded">Coming Soon</span>
-                    </button>
+                    <div className="flex gap-2">
+                        <input
+                            type="number"
+                            placeholder="Amount to withdraw"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            className="bg-gray-800 border border-gray-700 w-full px-4 py-3 rounded-xl text-white font-mono"
+                        />
+                        <button
+                            onClick={() => send()}
+                            disabled={isPending || !amount}
+                            className="bg-brand-600 hover:bg-brand-500 font-bold px-6 py-3 rounded-xl disabled:opacity-50 transition-colors"
+                        >
+                            Withdraw
+                        </button>
+                    </div>
 
                     <button
                         onClick={() => {
-                            // Empty for now until smart contract implements close_vault
-                            alert("Close Vault functionality requires contract upgrade.");
-                            onClose();
+                            setAmount(principal.toString());
+                            setTimeout(() => send(), 100);
                         }}
+                        disabled={isPending}
                         className="w-full py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold rounded-xl border border-red-500/30 transition-all flex justify-between items-center px-6"
                     >
-                        <span>Close Vault (Withdraw All)</span>
+                        <span>{isPending ? "Confirming in Wallet..." : "Close Vault (Withdraw All)"}</span>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     </button>
                 </div>

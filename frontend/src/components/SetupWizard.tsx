@@ -49,12 +49,31 @@ export default function SetupWizard() {
         // Mocking scale using 10^18 for the u256 value
         const amountWei = BigInt(Math.floor(parseFloat(depositAmount) * 1e18));
         const amountU256 = uint256.bnToUint256(amountWei);
-        return [{
-            contractAddress: GHOST_VAULT_ADDRESS,
-            entrypoint: "deposit",
-            calldata: [amountU256.low, amountU256.high]
-        }];
-    }, [depositAmount]);
+
+        const periodSeconds = checkinPeriod * 86400;
+        const windowDurationSeconds = 7 * 86400; // 7 days checkin window
+
+        // STRK Testnet token address
+        const strkAddress = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+
+        return [
+            {
+                contractAddress: GHOST_VAULT_ADDRESS,
+                entrypoint: "create_vault",
+                calldata: [beneficiary, periodSeconds.toString(), windowDurationSeconds.toString()]
+            },
+            {
+                contractAddress: strkAddress,
+                entrypoint: "approve",
+                calldata: [GHOST_VAULT_ADDRESS, amountU256.low, amountU256.high]
+            },
+            {
+                contractAddress: GHOST_VAULT_ADDRESS,
+                entrypoint: "deposit",
+                calldata: [amountU256.low, amountU256.high]
+            }
+        ];
+    }, [depositAmount, beneficiary, checkinPeriod]);
 
     const { send, isPending, data } = useSendTransaction({ calls });
 

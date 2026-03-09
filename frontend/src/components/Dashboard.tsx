@@ -13,23 +13,30 @@ export default function Dashboard() {
     const memory = useMemo(() => HonchoMemory.load("wizard_prefs"), []);
     const beneficiary = memory?.beneficiary || "0xNotSetYet... (Update in Wizard)";
 
-    const { data: vaultStatus } = useReadContract({
-        functionName: "get_vault_status",
-        args: [],
+    const { data: vaultStatus, error: vaultError } = useReadContract({
+        functionName: "get_vault",
+        args: address ? [address] : [],
         abi: GHOST_VAULT_ABI as any,
         address: GHOST_VAULT_ADDRESS,
         watch: true
     });
 
-    const principalU256 = vaultStatus ? (vaultStatus as any).principal || (vaultStatus as any)[0] : undefined;
-    const deadlineU64 = vaultStatus ? (vaultStatus as any).deadline || (vaultStatus as any)[1] : undefined;
+    // get_vault returns (beneficiary, principal, deadline, period, window_duration)
+    const onChainBeneficiary = vaultStatus ? (vaultStatus as any).beneficiary || (vaultStatus as any)[0] : undefined;
+    const principalU256 = vaultStatus ? (vaultStatus as any).principal || (vaultStatus as any)[1] : undefined;
+    const deadlineU64 = vaultStatus ? (vaultStatus as any).deadline || (vaultStatus as any)[2] : undefined;
+    const periodU64 = vaultStatus ? (vaultStatus as any).period || (vaultStatus as any)[3] : undefined;
+
+    // Override local memory if onchain data exists
+    const displayBeneficiary = onChainBeneficiary && onChainBeneficiary !== "0x0" ? `0x${onChainBeneficiary.toString(16)}` : beneficiary;
 
     const principalStr = principalU256 ? principalU256.toString() : "0";
     const principal = Number(principalStr) / 1e18;
     const vaultActive = principal > 0;
 
     const deadlineTimestamp = deadlineU64 ? Number(deadlineU64) : 0;
-    const period = memory?.period ? Number(memory.period) * 86400 : 30 * 86400; // default 30 days
+    const periodFromContract = periodU64 ? Number(periodU64) : 0;
+    const period = periodFromContract > 0 ? periodFromContract : (memory?.period ? Number(memory.period) * 86400 : 30 * 86400); // default 30 days
     const now = Math.floor(Date.now() / 1000);
     const timeRemainingSeconds = deadlineTimestamp > now ? deadlineTimestamp - now : 0;
     const daysRemaining = Math.ceil(timeRemainingSeconds / 86400);
@@ -174,7 +181,7 @@ export default function Dashboard() {
                                 <div className="flex justify-between items-end text-sm mb-3">
                                     <div>
                                         <span className="block text-xs text-gray-500 mb-1 uppercase tracking-widest">Primary Beneficiary</span>
-                                        <span className="text-gray-200 font-mono bg-black/30 px-3 py-1.5 rounded-lg border border-white/10">{beneficiary}</span>
+                                        <span className="text-gray-200 font-mono bg-black/30 px-3 py-1.5 rounded-lg border border-white/10">{displayBeneficiary}</span>
                                     </div>
                                     <span className="text-brand-400 font-bold bg-brand-900/30 px-3 py-1 rounded shadow-sm border border-brand-500/30">100% Allocation</span>
                                 </div>
