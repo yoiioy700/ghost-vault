@@ -7,9 +7,6 @@ import {
     jsonRpcProvider,
     voyager,
 } from "@starknet-react/core";
-import { InjectedConnector } from "starknetkit/injected";
-import { WebWalletConnector } from "starknetkit/webwallet";
-import { ArgentMobileConnector } from "starknetkit/argentMobile";
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
     const chains = [sepolia, mainnet];
@@ -25,13 +22,17 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
     };
     const provider = jsonRpcProvider({ rpc });
 
-    const [connectors, setConnectors] = React.useState<any[]>([]);
+    const [connectors, setConnectors] = React.useState<any[] | null>(null);
 
     React.useEffect(() => {
         const initConnectors = async () => {
+            const { InjectedConnector } = await import("starknetkit/injected");
+            const { ArgentMobileConnector } = await import("starknetkit/argentMobile");
+            const { WebWalletConnector } = await import("starknetkit/webwallet");
+
             const argentMobile = await ArgentMobileConnector.init({
                 options: {
-                    url: typeof window !== "undefined" ? window.location.href : "",
+                    url: window.location.href,
                     dappName: "Ghost Vault",
                     chainId: "SN_SEPOLIA",
                 },
@@ -47,6 +48,15 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
         };
         initConnectors();
     }, []);
+
+    // PENTING: jangan render StarknetConfig sampe connectors ready
+    if (!connectors) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-black">
+                <div className="w-6 h-6 border-2 border-zinc-700 border-t-white rounded-full animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <StarknetConfig

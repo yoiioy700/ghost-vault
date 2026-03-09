@@ -88,6 +88,10 @@ export default function Dashboard() {
     const { disconnect } = useDisconnect();
 
     const handleConnect = async () => {
+        if (!connectors || connectors.length === 0) {
+            console.warn("Connectors not ready yet");
+            return;
+        }
         const { connector } = await starknetkitConnectModal();
         if (connector) {
             connect({ connector: connector as any });

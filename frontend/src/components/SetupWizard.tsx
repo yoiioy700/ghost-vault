@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useAccount, useSendTransaction, useReadContract, useContract } from "@starknet-react/core";
+import { useAccount, useSendTransaction, useReadContract, useContract, useConnect } from "@starknet-react/core";
+import { useStarknetkitConnectModal } from "starknetkit";
 import { GHOST_VAULT_ADDRESS, GHOST_VAULT_ABI } from "@/lib/contract";
 import { uint256 } from "starknet";
 import { HonchoMemory } from "@/lib/honcho";
@@ -35,6 +36,12 @@ export default function SetupWizard() {
     const [strategy, setStrategy] = useState(STRATEGIES[0]);
     const [checkinPeriod, setCheckinPeriod] = useState(30);
     const [beneficiary, setBeneficiary] = useState("");
+
+    const { connect, connectors } = useConnect();
+    const { starknetkitConnectModal } = useStarknetkitConnectModal({
+        connectors: connectors as any,
+        modalMode: "alwaysAsk",
+    });
 
     const { contract: vaultContract } = useContract({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -138,11 +145,32 @@ export default function SetupWizard() {
         send();
     };
 
+    const handleConnect = async () => {
+        if (!connectors || connectors.length === 0) {
+            console.warn("Connectors not ready yet");
+            return;
+        }
+        const { connector } = await starknetkitConnectModal();
+        if (connector) {
+            connect({ connector: connector as any });
+        }
+    };
+
     if (!address) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center px-4">
-                <div className="p-8 text-center rounded-2xl border border-white/[0.08] bg-[#0a0a0a] text-zinc-500 max-w-sm w-full">
-                    Please connect your wallet first.
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4">
+                <div className="p-8 text-center rounded-2xl border border-white/[0.08] bg-[#0a0a0a] max-w-sm w-full">
+                    <div className="w-14 h-14 rounded-full bg-[#111] mx-auto mb-6 flex items-center justify-center border border-white/[0.06]">
+                        <svg className="w-6 h-6 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h2 className="text-xl font-semibold text-white mb-2">Connect your wallet</h2>
+                    <p className="text-sm text-zinc-500 mb-8">Please connect your starknet wallet to setup your vault.</p>
+                    <button
+                        onClick={handleConnect}
+                        className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-white hover:bg-zinc-200 text-black font-semibold text-sm rounded-xl transition-all duration-150 cursor-pointer"
+                    >
+                        Connect Wallet
+                    </button>
                 </div>
             </div>
         );
