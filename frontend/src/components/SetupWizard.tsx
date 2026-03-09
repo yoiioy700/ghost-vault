@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useAccount, useSendTransaction, useReadContract, useContract, useConnect } from "@starknet-react/core";
+import { useAccount, useSendTransaction, useReadContract, useContract, useConnect, useBalance } from "@starknet-react/core";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { GHOST_VAULT_ADDRESS, GHOST_VAULT_ABI } from "@/lib/contract";
 import { uint256 } from "starknet";
@@ -71,26 +71,13 @@ export default function SetupWizard() {
     const vaultAlreadyExists = vaultData ? Number((vaultData as any[])[2]) > 0 : false;
 
     // Fetch STRK Balance
-    const { data: strkBalanceData } = useReadContract({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        abi: [
-            {
-                type: "function",
-                name: "balanceOf",
-                inputs: [{ name: "account", type: "core::starknet::contract_address::ContractAddress" }],
-                outputs: [{ type: "core::integer::u256" }],
-                state_mutability: "view"
-            }
-        ] as const,
-        address: VAULT_TOKEN.address as `0x${string}`,
-        functionName: "balanceOf",
-        args: address ? [address as `0x${string}`] : undefined,
-        enabled: !!address,
+    const { data: strkBalanceData } = useBalance({
+        token: VAULT_TOKEN.address as `0x${string}`,
+        address: address as `0x${string}`,
         watch: true,
     });
 
-    // Starknet.js usually returns a bigint or an object { low, high } for u256. Handle both.
-    const strkBalance = strkBalanceData !== undefined ? BigInt((strkBalanceData as any).low ?? strkBalanceData) : BigInt(0);
+    const strkBalance = strkBalanceData?.value ?? BigInt(0);
 
     const amountWei = depositAmount && !isNaN(parseFloat(depositAmount))
         ? BigInt(Math.floor(parseFloat(depositAmount) * 1e18))
