@@ -70,7 +70,7 @@ export default function SetupWizard() {
 
     const vaultAlreadyExists = vaultData ? Number((vaultData as any[])[2]) > 0 : false;
 
-    const { data: strkBalanceData } = useReadContract({
+    const { data: strkBalanceData, isLoading: balanceLoading } = useReadContract({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         abi: [
             {
@@ -107,6 +107,11 @@ export default function SetupWizard() {
             strkBalance = BigInt(dataAny.toString());
         }
     }
+
+    const strkBalanceNum = strkBalanceData !== undefined ? Number(strkBalance) / 1e18 : null;
+    const depositNum = Number(depositAmount) || 0;
+    const isInsufficientBalance = strkBalanceNum !== null && depositNum > strkBalanceNum;
+    const isTightBalance = strkBalanceNum !== null && !isInsufficientBalance && depositNum > 0 && (strkBalanceNum - depositNum) < 0.01;
 
     const amountWei = depositAmount && !isNaN(parseFloat(depositAmount))
         ? BigInt(Math.floor(parseFloat(depositAmount) * 1e18))
@@ -154,7 +159,7 @@ export default function SetupWizard() {
     const { send, isPending, data, error } = useSendTransaction({ calls });
 
     const hasEnoughBalance = amountWei <= strkBalance;
-    const isValid = depositAmount && parseFloat(depositAmount) > 0 && beneficiary.startsWith("0x") && beneficiary.length > 10 && hasEnoughBalance;
+    const isValid = depositAmount && parseFloat(depositAmount) > 0 && beneficiary.startsWith("0x") && beneficiary.length > 10 && hasEnoughBalance && !isInsufficientBalance;
 
     const handleSubmit = () => {
         HonchoMemory.save("wizard_prefs", { period: checkinPeriod, beneficiary });
@@ -239,12 +244,55 @@ export default function SetupWizard() {
                                 placeholder="0.00"
                                 value={depositAmount}
                                 onChange={(e) => setDepositAmount(e.target.value)}
-                                className="w-full bg-[#111] border border-white/[0.08] focus:border-white/30 text-white rounded-xl py-4 pl-5 pr-20 focus:outline-none text-2xl font-mono transition-all"
+                                className={`w-full bg-[#111] border focus:border-white/30 text-white rounded-xl py-4 pl-5 pr-20 focus:outline-none text-2xl font-mono transition-all ${isInsufficientBalance ? 'border-red-500/50' : 'border-white/[0.08]'}`}
                             />
                             <span className="absolute right-5 top-1/2 -translate-y-1/2 font-bold text-sm text-violet-400">
                                 STRK
                             </span>
                         </div>
+
+                        {/* Balance display */}
+                        <div className="flex items-center justify-between mt-3 text-xs">
+                            {balanceLoading ? (
+                                <span className="text-zinc-500">Loading balance...</span>
+                            ) : strkBalanceNum !== null ? (
+                                <span className="text-zinc-400">
+                                    Wallet balance: <span className="text-white font-mono">{strkBalanceNum.toFixed(4)}</span> STRK
+                                </span>
+                            ) : (
+                                <span className="text-zinc-500">Could not read balance</span>
+                            )}
+                            {strkBalanceNum !== null && strkBalanceNum > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const maxDeposit = Math.max(0, strkBalanceNum - 0.005);
+                                        setDepositAmount(maxDeposit.toFixed(4));
+                                    }}
+                                    className="text-violet-400 hover:text-violet-300 font-medium transition-colors cursor-pointer"
+                                >
+                                    Max
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Insufficient balance warning */}
+                        {isInsufficientBalance && (
+                            <div className="mt-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                                <p className="text-red-400 text-xs">
+                                    Insufficient STRK balance. You have {strkBalanceNum?.toFixed(4)} but trying to deposit {depositNum.toFixed(4)}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Tight balance warning */}
+                        {isTightBalance && (
+                            <div className="mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                                <p className="text-amber-400 text-xs">
+                                    Balance is tight — you might not have enough left for gas fees (~0.005 STRK)
+                                </p>
+                            </div>
+                        )}
                     </section>
 
                     {/* Section 2: Yield Strategy */}
@@ -340,8 +388,8 @@ export default function SetupWizard() {
                     {/* Submit */}
                     <button
                         onClick={handleSubmit}
-                        disabled={isPending || !isValid || !calls.length}
-                        className="w-full py-4 bg-white hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-600 text-black font-semibold text-sm rounded-xl transition-all duration-150"
+                        disabled={isPending || !isValid || !calls.length || isInsufficientBalance || depositNum <= 0}
+                        className={`w-full py-4 bg-white hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-600 text-black font-semibold text-sm rounded-xl transition-all duration-150 ${isInsufficientBalance ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         {isPending ? "Waiting for signature..." : data ? "✓ Vault Created!" : "Confirm & Create Vault"}
                     </button>
@@ -356,7 +404,6 @@ export default function SetupWizard() {
                         <p className="text-center text-xs text-red-400 font-mono">
                             {!depositAmount || parseFloat(depositAmount) <= 0 ? "Enter a deposit amount · " : ""}
                             {!beneficiary.startsWith("0x") || beneficiary.length <= 10 ? "Enter a valid beneficiary address · " : ""}
-                            {depositAmount && parseFloat(depositAmount) > 0 && !hasEnoughBalance ? "Insufficient STRK balance" : ""}
                         </p>
                     )}
                 </div>
