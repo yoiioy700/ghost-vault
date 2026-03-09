@@ -18,6 +18,11 @@ const TOKENS = [
         color: "text-blue-400", bg: "bg-blue-500/10", activeBorder: "border-blue-400",
     },
     {
+        id: "xBTC", name: "Endur xBTC", symbol: "xBTC",
+        address: "0x02892f4f7308a8a0b0b5e06e5dc88b6adb58fad7736af4e0a5ddb2b43e48aaa7",
+        color: "text-amber-400", bg: "bg-amber-500/10", activeBorder: "border-amber-400",
+    },
+    {
         id: "USDC", name: "USD Coin", symbol: "USDC",
         address: "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
         color: "text-emerald-400", bg: "bg-emerald-500/10", activeBorder: "border-emerald-400",
@@ -126,7 +131,7 @@ export default function SetupWizard() {
                     <section className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/[0.08]">
                         <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-4">1 · Asset & Amount</label>
 
-                        <div className="grid grid-cols-3 gap-3 mb-5">
+                        <div className="grid grid-cols-4 gap-2 mb-5">
                             {TOKENS.map((token) => (
                                 <button
                                     key={token.id}
