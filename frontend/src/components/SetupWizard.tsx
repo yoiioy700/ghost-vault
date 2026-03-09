@@ -6,28 +6,16 @@ import { GHOST_VAULT_ADDRESS } from "@/lib/contract";
 import { uint256 } from "starknet";
 import { HonchoMemory } from "@/lib/honcho";
 
-const TOKENS = [
-    {
-        id: "STRK", name: "Starknet Token", symbol: "STRK",
-        address: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-        color: "text-violet-400", bg: "bg-violet-500/10", activeBorder: "border-violet-400",
-    },
-    {
-        id: "ETH", name: "Ether", symbol: "ETH",
-        address: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-        color: "text-blue-400", bg: "bg-blue-500/10", activeBorder: "border-blue-400",
-    },
-    {
-        id: "xBTC", name: "Endur xBTC", symbol: "xBTC",
-        address: "0x02892f4f7308a8a0b0b5e06e5dc88b6adb58fad7736af4e0a5ddb2b43e48aaa7",
-        color: "text-amber-400", bg: "bg-amber-500/10", activeBorder: "border-amber-400",
-    },
-    {
-        id: "USDC", name: "USD Coin", symbol: "USDC",
-        address: "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
-        color: "text-emerald-400", bg: "bg-emerald-500/10", activeBorder: "border-emerald-400",
-    },
-];
+// The deployed contract is single-token: hardcoded to STRK at deploy time.
+// Other tokens will be supported when new contract versions are deployed.
+const VAULT_TOKEN = {
+    id: "STRK", name: "Starknet Token", symbol: "STRK",
+    address: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    color: "text-violet-400", bg: "bg-violet-500/10", activeBorder: "border-violet-400",
+};
+
+const COMING_SOON_TOKENS = ["ETH", "xBTC", "USDC"];
+
 
 const PERIODS = [
     { days: 14, label: "2 weeks" },
@@ -45,7 +33,6 @@ export default function SetupWizard() {
     const { address } = useAccount();
 
     // Form state
-    const [selectedToken, setSelectedToken] = useState(TOKENS[0]);
     const [depositAmount, setDepositAmount] = useState("");
     const [strategy, setStrategy] = useState(STRATEGIES[0]);
     const [checkinPeriod, setCheckinPeriod] = useState(30);
@@ -66,27 +53,32 @@ export default function SetupWizard() {
         const amountU256 = uint256.bnToUint256(amountWei);
         const periodSeconds = checkinPeriod * 86400;
         const windowDurationSeconds = 7 * 86400;
+
+        // All calldata must be strings for Starknet serialization
+        const low = amountU256.low.toString();
+        const high = amountU256.high.toString();
+
         return [
-            // 1. Approve
+            // 1. Approve token transfer to vault contract
             {
-                contractAddress: selectedToken.address,
+                contractAddress: VAULT_TOKEN.address,
                 entrypoint: "approve",
-                calldata: [GHOST_VAULT_ADDRESS, amountU256.low, amountU256.high],
+                calldata: [GHOST_VAULT_ADDRESS, low, high],
             },
-            // 2. Create vault
+            // 2. Create vault with beneficiary + schedule
             {
                 contractAddress: GHOST_VAULT_ADDRESS,
                 entrypoint: "create_vault",
                 calldata: [beneficiary, periodSeconds.toString(), windowDurationSeconds.toString()],
             },
-            // 3. Deposit
+            // 3. Deposit approved tokens into vault
             {
                 contractAddress: GHOST_VAULT_ADDRESS,
                 entrypoint: "deposit",
-                calldata: [amountU256.low, amountU256.high],
+                calldata: [low, high],
             },
         ];
-    }, [depositAmount, selectedToken, beneficiary, checkinPeriod]);
+    }, [depositAmount, beneficiary, checkinPeriod]);
 
     const { send, isPending, data } = useSendTransaction({ calls });
 
@@ -131,22 +123,19 @@ export default function SetupWizard() {
                     <section className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/[0.08]">
                         <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-4">1 · Asset & Amount</label>
 
-                        <div className="grid grid-cols-4 gap-2 mb-5">
-                            {TOKENS.map((token) => (
-                                <button
-                                    key={token.id}
-                                    onClick={() => setSelectedToken(token)}
-                                    className={`flex flex-col items-center gap-1.5 py-3.5 rounded-xl border transition-all duration-150 cursor-pointer
-                                        ${selectedToken.id === token.id
-                                            ? `${token.bg} ${token.activeBorder}`
-                                            : "bg-[#111] border-white/[0.07] hover:border-white/[0.14]"
-                                        }`}
-                                >
-                                    <span className={`text-xl font-bold font-mono ${selectedToken.id === token.id ? token.color : "text-zinc-500"}`}>
-                                        {token.symbol}
-                                    </span>
-                                    <span className="text-[11px] text-zinc-600">{token.name}</span>
-                                </button>
+                        {/* Token chips */}
+                        <div className="flex items-center gap-2 mb-5 flex-wrap">
+                            {/* Active: STRK */}
+                            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-400 cursor-default">
+                                <span className="text-sm font-bold font-mono text-violet-400">STRK</span>
+                                <span className="text-[10px] text-violet-500/70">Active</span>
+                            </div>
+                            {/* Coming soon */}
+                            {COMING_SOON_TOKENS.map((sym) => (
+                                <div key={sym} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#111] border border-white/[0.05] cursor-not-allowed opacity-50">
+                                    <span className="text-sm font-bold font-mono text-zinc-600">{sym}</span>
+                                    <span className="text-[9px] text-zinc-700 uppercase tracking-wider">Soon</span>
+                                </div>
                             ))}
                         </div>
 
@@ -159,8 +148,8 @@ export default function SetupWizard() {
                                 onChange={(e) => setDepositAmount(e.target.value)}
                                 className="w-full bg-[#111] border border-white/[0.08] focus:border-white/30 text-white rounded-xl py-4 pl-5 pr-20 focus:outline-none text-2xl font-mono transition-all"
                             />
-                            <span className={`absolute right-5 top-1/2 -translate-y-1/2 font-bold text-sm ${selectedToken.color}`}>
-                                {selectedToken.symbol}
+                            <span className="absolute right-5 top-1/2 -translate-y-1/2 font-bold text-sm text-violet-400">
+                                STRK
                             </span>
                         </div>
                     </section>
@@ -232,9 +221,9 @@ export default function SetupWizard() {
                         <p className="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-3">Signing 1 Multicall:</p>
                         <div className="flex flex-col gap-1.5">
                             {[
-                                { n: "01", text: `Approve ${depositAmount || "?"} ${selectedToken.symbol}`, color: selectedToken.color },
+                                { n: "01", text: `Approve ${depositAmount || "?"} STRK`, color: "text-violet-400" },
                                 { n: "02", text: `Create vault · ${checkinPeriod}d period`, color: "text-zinc-400" },
-                                { n: "03", text: `Deposit ${depositAmount || "?"} ${selectedToken.symbol}`, color: selectedToken.color },
+                                { n: "03", text: `Deposit ${depositAmount || "?"} STRK`, color: "text-violet-400" },
                             ].map(({ n, text, color }) => (
                                 <div key={n} className="flex items-center gap-3 text-sm">
                                     <span className="text-zinc-700 font-mono text-xs w-5">{n}</span>
