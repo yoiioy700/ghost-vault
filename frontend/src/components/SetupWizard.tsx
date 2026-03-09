@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useAccount, useSendTransaction, useReadContract } from "@starknet-react/core";
+import { useAccount, useSendTransaction, useReadContract, useContract } from "@starknet-react/core";
 import { GHOST_VAULT_ADDRESS, GHOST_VAULT_ABI } from "@/lib/contract";
-import { uint256, CallData } from "starknet";
+import { uint256 } from "starknet";
 import { HonchoMemory } from "@/lib/honcho";
 
 // The deployed contract is single-token: hardcoded to STRK at deploy time.
@@ -36,7 +36,14 @@ export default function SetupWizard() {
     const [checkinPeriod, setCheckinPeriod] = useState(30);
     const [beneficiary, setBeneficiary] = useState("");
 
+    const { contract: vaultContract } = useContract({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        abi: GHOST_VAULT_ABI as any,
+        address: GHOST_VAULT_ADDRESS as `0x${string}`
+    });
+
     useMemo(() => {
+        if (!HonchoMemory) return;
         const mem = HonchoMemory.load("wizard_prefs");
         if (mem) {
             if (mem.period) setCheckinPeriod(mem.period);
@@ -57,43 +64,44 @@ export default function SetupWizard() {
     const vaultAlreadyExists = vaultData ? Number((vaultData as any[])[2]) > 0 : false;
 
     const calls = useMemo(() => {
-        if (!depositAmount || isNaN(parseFloat(depositAmount)) || !beneficiary) return [];
+        if (!depositAmount || isNaN(parseFloat(depositAmount)) || !beneficiary || !vaultContract) return [];
+
         const amountWei = BigInt(Math.floor(parseFloat(depositAmount) * 1e18));
         const amountU256 = uint256.bnToUint256(amountWei);
         const periodSeconds = checkinPeriod * 86400;
         const windowDurationSeconds = 7 * 86400;
 
+        // ERC20 Approve (Cairo 0/1 typical structure: spender, low, high)
         const approveTx = {
             contractAddress: VAULT_TOKEN.address,
             entrypoint: "approve",
-            calldata: CallData.compile({
-                spender: GHOST_VAULT_ADDRESS,
-                amount: amountU256
-            }),
+            calldata: [GHOST_VAULT_ADDRESS, amountU256.low.toString(), amountU256.high.toString()],
         };
+
         const createVaultTx = {
             contractAddress: GHOST_VAULT_ADDRESS,
             entrypoint: "create_vault",
-            calldata: CallData.compile({
+            calldata: [
                 beneficiary,
-                period: periodSeconds,
-                window_duration: windowDurationSeconds
-            }),
+                periodSeconds.toString(),
+                windowDurationSeconds.toString()
+            ]
         };
+
         const depositTx = {
             contractAddress: GHOST_VAULT_ADDRESS,
             entrypoint: "deposit",
-            calldata: CallData.compile({
-                amount: amountU256
-            }),
+            calldata: [
+                amountU256.low.toString(),
+                amountU256.high.toString()
+            ]
         };
 
         if (vaultAlreadyExists) {
-            // Vault exists — skip create_vault, just approve + deposit
             return [approveTx, depositTx];
         }
         return [approveTx, createVaultTx, depositTx];
-    }, [depositAmount, beneficiary, checkinPeriod, vaultAlreadyExists]);
+    }, [depositAmount, beneficiary, checkinPeriod, vaultAlreadyExists, vaultContract]);
 
     const { send, isPending, data, error } = useSendTransaction({ calls });
 
@@ -196,7 +204,7 @@ export default function SetupWizard() {
                     {/* Section 3: Check-in Period */}
                     <section className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/[0.08]">
                         <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-1">3 · Check-in Period</label>
-                        <p className="text-xs text-zinc-600 mb-4">If you don't check in within this period, inheritance triggers automatically.</p>
+                        <p className="text-xs text-zinc-600 mb-4">If you don&apos;t check in within this period, inheritance triggers automatically.</p>
                         <div className="grid grid-cols-4 gap-2">
                             {PERIODS.map(({ days, label }) => (
                                 <button
