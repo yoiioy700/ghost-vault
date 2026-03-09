@@ -48,8 +48,6 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
         initConnectors();
     }, []);
 
-    if (connectors.length === 0) return <>{children}</>;
-
     return (
         <StarknetConfig
             chains={chains}
