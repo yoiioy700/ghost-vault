@@ -70,14 +70,43 @@ export default function SetupWizard() {
 
     const vaultAlreadyExists = vaultData ? Number((vaultData as any[])[2]) > 0 : false;
 
-    // Fetch STRK Balance
-    const { data: strkBalanceData } = useBalance({
-        token: VAULT_TOKEN.address as `0x${string}`,
-        address: address as `0x${string}`,
+    const { data: strkBalanceData } = useReadContract({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        abi: [
+            {
+                name: "balanceOf",
+                type: "function",
+                inputs: [{ name: "account", type: "felt" }],
+                outputs: [{ type: "Uint256" }],
+                state_mutability: "view",
+            },
+            {
+                type: "struct",
+                name: "Uint256",
+                members: [
+                    { name: "low", type: "felt" },
+                    { name: "high", type: "felt" },
+                ],
+            },
+        ] as const,
+        address: VAULT_TOKEN.address as `0x${string}`,
+        functionName: "balanceOf",
+        args: address ? [address as `0x${string}`] : undefined,
+        enabled: !!address,
         watch: true,
     });
 
-    const strkBalance = strkBalanceData?.value ?? BigInt(0);
+    let strkBalance = BigInt(0);
+    if (strkBalanceData !== undefined) {
+        const dataAny = strkBalanceData as any;
+        if (typeof dataAny === 'bigint') {
+            strkBalance = dataAny;
+        } else if (typeof dataAny === 'object' && dataAny !== null) {
+            strkBalance = BigInt(dataAny.balance?.low ?? dataAny.low ?? dataAny.toString());
+        } else {
+            strkBalance = BigInt(dataAny.toString());
+        }
+    }
 
     const amountWei = depositAmount && !isNaN(parseFloat(depositAmount))
         ? BigInt(Math.floor(parseFloat(depositAmount) * 1e18))
