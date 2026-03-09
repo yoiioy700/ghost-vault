@@ -3,9 +3,13 @@
 import { useAccount, useReadContract, useSendTransaction } from "@starknet-react/core";
 import { useMemo } from "react";
 import { GHOST_VAULT_ADDRESS, GHOST_VAULT_ABI } from "@/lib/contract";
+import { HonchoMemory } from "@/lib/honcho";
 
 export default function Dashboard() {
     const { address } = useAccount();
+
+    const memory = useMemo(() => HonchoMemory.load("wizard_prefs"), []);
+    const beneficiary = memory?.beneficiary || "0xNotSetYet... (Update in Wizard)";
 
     const { data: vaultStatus } = useReadContract({
         functionName: "get_vault_status",
@@ -121,6 +125,65 @@ export default function Dashboard() {
                         className="mt-6 w-full py-4 bg-accent/10 hover:bg-accent disabled:opacity-50 hover:text-gray-900 text-accent font-bold rounded-xl transition-all border border-accent/30 hover:border-accent shadow-[0_0_15px_rgba(245,158,11,0.1)] hover:shadow-[0_0_20px_rgba(245,158,11,0.4)]">
                         {isPending ? "Confirming..." : "Check In Now"}
                     </button>
+                </div>
+
+                {/* Beneficiary Distribution Graph */}
+                <div className="glass-panel rounded-3xl p-8 md:col-span-3 transition-all relative overflow-hidden group border border-brand-500/20">
+                    <div className="absolute -left-20 -bottom-20 w-60 h-60 bg-brand-500/10 rounded-full blur-3xl group-hover:bg-brand-500/20 transition-all delay-150"></div>
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-8 z-10 relative">
+                        <div className="flex-1 w-full">
+                            <h3 className="text-gray-400 font-medium mb-4 text-xl border-b border-white/5 pb-3">Vault Distribution Plan</h3>
+
+                            <div className="mb-4 pt-2">
+                                <div className="flex justify-between items-end text-sm mb-3">
+                                    <div>
+                                        <span className="block text-xs text-gray-500 mb-1 uppercase tracking-widest">Primary Beneficiary</span>
+                                        <span className="text-gray-200 font-mono bg-black/30 px-3 py-1.5 rounded-lg border border-white/10">{beneficiary}</span>
+                                    </div>
+                                    <span className="text-brand-400 font-bold bg-brand-900/30 px-3 py-1 rounded shadow-sm border border-brand-500/30">100% Allocation</span>
+                                </div>
+                                <div className="h-3 w-full bg-gray-900/80 rounded-full overflow-hidden shadow-inner border border-white/5">
+                                    <div className="h-full bg-gradient-to-r from-brand-600 to-accent w-full rounded-full shadow-[0_0_10px_rgba(14,165,233,0.5)]"></div>
+                                </div>
+                            </div>
+
+                            <p className="text-sm text-gray-500 max-w-xl leading-relaxed mt-6">
+                                Upon expiration of the Dead Man's Switch Check-in countdown, 100% of the vault principal and accumulated automated yields will be instantly, and trustlessly distributed to the address above via Starknet L2.
+                            </p>
+                        </div>
+
+                        {/* Visual Circle Graph */}
+                        <div className="relative w-48 h-48 shrink-0 flex items-center justify-center bg-black/20 rounded-full border border-white/5 p-4 shadow-xl">
+                            <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90 drop-shadow-2xl">
+                                <path
+                                    className="text-gray-800/50"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                />
+                                <path
+                                    className="text-brand-500 transition-all duration-1000 ease-out"
+                                    strokeDasharray="100, 100"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="url(#gradient)"
+                                    strokeWidth="3.5"
+                                    strokeLinecap="round"
+                                />
+                                <defs>
+                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#0ea5e9" />
+                                        <stop offset="100%" stopColor="#f59e0b" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pt-1">
+                                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400">100<span className="text-base text-brand-400">%</span></span>
+                                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold mt-1">Secured</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>

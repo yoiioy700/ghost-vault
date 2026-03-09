@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useAccount, useSendTransaction } from "@starknet-react/core";
 import { GHOST_VAULT_ADDRESS } from "@/lib/contract";
 import { uint256 } from "starknet";
+import { HonchoMemory } from "@/lib/honcho";
 
 const TIERS = [
     { id: "conservative", name: "Conservative", protocol: "Endur.fi (xBTC)", apy: "~4%", risk: "Low", description: "Default safe strategy. Stable BTC-denominated yield." },
@@ -20,7 +21,27 @@ export default function SetupWizard() {
     const [checkinPeriod, setCheckinPeriod] = useState(30);
     const [beneficiary, setBeneficiary] = useState("");
 
-    const handleNext = () => setStep((s) => Math.min(s + 1, 4));
+    // Load Honcho Memory
+    useMemo(() => {
+        const memory = HonchoMemory.load("wizard_prefs");
+        if (memory) {
+            if (memory.tier) setSelectedTier(TIERS.find(t => t.id === memory.tier) || TIERS[0]);
+            if (memory.period) setCheckinPeriod(memory.period);
+            if (memory.beneficiary) setBeneficiary(memory.beneficiary);
+        }
+    }, []);
+
+    const handleNext = () => {
+        setStep((s) => Math.min(s + 1, 4));
+        if (step === 3) {
+            // Save preferences to Honcho when reaching review step
+            HonchoMemory.save("wizard_prefs", {
+                tier: selectedTier.id,
+                period: checkinPeriod,
+                beneficiary: beneficiary,
+            });
+        }
+    };
     const handleBack = () => setStep((s) => Math.max(s - 1, 1));
 
     const calls = useMemo(() => {
