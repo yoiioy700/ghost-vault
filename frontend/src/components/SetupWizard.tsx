@@ -63,10 +63,35 @@ export default function SetupWizard() {
 
     const vaultAlreadyExists = vaultData ? Number((vaultData as any[])[2]) > 0 : false;
 
+    // Fetch STRK Balance
+    const { data: strkBalanceData } = useReadContract({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        abi: [
+            {
+                type: "function",
+                name: "balanceOf",
+                inputs: [{ name: "account", type: "core::starknet::contract_address::ContractAddress" }],
+                outputs: [{ type: "core::integer::u256" }],
+                state_mutability: "view"
+            }
+        ] as const,
+        address: VAULT_TOKEN.address as `0x${string}`,
+        functionName: "balanceOf",
+        args: address ? [address as `0x${string}`] : undefined,
+        enabled: !!address,
+        watch: true,
+    });
+
+    // Starknet.js usually returns a bigint or an object { low, high } for u256. Handle both.
+    const strkBalance = strkBalanceData !== undefined ? BigInt((strkBalanceData as any).low ?? strkBalanceData) : BigInt(0);
+
+    const amountWei = depositAmount && !isNaN(parseFloat(depositAmount))
+        ? BigInt(Math.floor(parseFloat(depositAmount) * 1e18))
+        : BigInt(0);
+
     const calls = useMemo(() => {
         if (!depositAmount || isNaN(parseFloat(depositAmount)) || !beneficiary || !vaultContract) return [];
 
-        const amountWei = BigInt(Math.floor(parseFloat(depositAmount) * 1e18));
         const amountU256 = uint256.bnToUint256(amountWei);
         const periodSeconds = checkinPeriod * 86400;
         const windowDurationSeconds = 7 * 86400;
@@ -101,11 +126,12 @@ export default function SetupWizard() {
             return [approveTx, depositTx];
         }
         return [approveTx, createVaultTx, depositTx];
-    }, [depositAmount, beneficiary, checkinPeriod, vaultAlreadyExists, vaultContract]);
+    }, [depositAmount, beneficiary, checkinPeriod, vaultAlreadyExists, vaultContract, amountWei]);
 
     const { send, isPending, data, error } = useSendTransaction({ calls });
 
-    const isValid = depositAmount && parseFloat(depositAmount) > 0 && beneficiary.startsWith("0x") && beneficiary.length > 10;
+    const hasEnoughBalance = amountWei <= strkBalance;
+    const isValid = depositAmount && parseFloat(depositAmount) > 0 && beneficiary.startsWith("0x") && beneficiary.length > 10 && hasEnoughBalance;
 
     const handleSubmit = () => {
         HonchoMemory.save("wizard_prefs", { period: checkinPeriod, beneficiary });
@@ -130,7 +156,7 @@ export default function SetupWizard() {
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
                     Back to Dashboard
                 </a>
-                <span className="text-sm font-medium text-zinc-300">Ghost Vault</span>
+                <span className="text-sm font-medium text-zinc-300">Ghost Vault {strkBalance > BigInt(0) ? `(Bal: ${(Number(strkBalance) / 1e18).toFixed(2)} STRK)` : ""}</span>
             </nav>
 
             <div className="max-w-2xl mx-auto px-6 py-12">
@@ -283,9 +309,10 @@ export default function SetupWizard() {
                     )}
 
                     {!isValid && (depositAmount || beneficiary) && (
-                        <p className="text-center text-xs text-zinc-600">
+                        <p className="text-center text-xs text-red-400 font-mono">
                             {!depositAmount || parseFloat(depositAmount) <= 0 ? "Enter a deposit amount · " : ""}
-                            {!beneficiary.startsWith("0x") || beneficiary.length <= 10 ? "Enter a valid beneficiary address" : ""}
+                            {!beneficiary.startsWith("0x") || beneficiary.length <= 10 ? "Enter a valid beneficiary address · " : ""}
+                            {depositAmount && parseFloat(depositAmount) > 0 && !hasEnoughBalance ? "Insufficient STRK balance" : ""}
                         </p>
                     )}
                 </div>
