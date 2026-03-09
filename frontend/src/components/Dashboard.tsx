@@ -1,12 +1,14 @@
 "use client";
 
 import { useAccount, useReadContract, useSendTransaction } from "@starknet-react/core";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { GHOST_VAULT_ADDRESS, GHOST_VAULT_ABI } from "@/lib/contract";
 import { HonchoMemory } from "@/lib/honcho";
+import WithdrawModal from "./WithdrawModal";
 
 export default function Dashboard() {
     const { address } = useAccount();
+    const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
     const memory = useMemo(() => HonchoMemory.load("wizard_prefs"), []);
     const beneficiary = memory?.beneficiary || "0xNotSetYet... (Update in Wizard)";
@@ -27,18 +29,36 @@ export default function Dashboard() {
     const vaultActive = principal > 0;
 
     const deadlineTimestamp = deadlineU64 ? Number(deadlineU64) : 0;
+    const period = memory?.period ? Number(memory.period) * 86400 : 30 * 86400; // default 30 days
     const now = Math.floor(Date.now() / 1000);
-    const daysRemaining = deadlineTimestamp > now ? Math.ceil((deadlineTimestamp - now) / 86400) : 0;
+    const timeRemainingSeconds = deadlineTimestamp > now ? deadlineTimestamp - now : 0;
+    const daysRemaining = Math.ceil(timeRemainingSeconds / 86400);
+
+    // Calculate percentage for the dynamic graph ring (100 = full period, 0 = dead)
+    const percentageRemaining = period > 0 ? Math.min(Math.max((timeRemainingSeconds / period) * 100, 0), 100) : 0;
+    const dashArrayValue = Math.max(percentageRemaining, 1); // SVG stroke dash array
+    const isCritical = percentageRemaining < 15; // < 15% remaining (e.g. < 4 days left out of 30)
 
     const calls = useMemo(() => {
+        if (!address) return [];
         return [{
             contractAddress: GHOST_VAULT_ADDRESS,
             entrypoint: "checkin",
             calldata: []
         }];
-    }, []);
+    }, [address]);
+
+    const claimCalls = useMemo(() => {
+        if (!address) return [];
+        return [{
+            contractAddress: GHOST_VAULT_ADDRESS,
+            entrypoint: "claim_yield",
+            calldata: []
+        }];
+    }, [address]);
 
     const { send, isPending, data } = useSendTransaction({ calls });
+    const { send: sendClaim, isPending: isClaiming } = useSendTransaction({ calls: claimCalls });
 
     const apy = 4.2;
     const accumulatedYield = (principal * 0.042 * (30 - daysRemaining) / 365).toFixed(4);
@@ -80,15 +100,23 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
                 {/* Total Value Card */}
-                <div className="glass-panel rounded-3xl p-8 relative overflow-hidden group">
+                <div className="glass-panel rounded-3xl p-8 relative overflow-hidden group flex flex-col justify-between">
                     <div className="absolute -right-10 -top-10 w-40 h-40 bg-brand-500/10 rounded-full blur-2xl group-hover:bg-brand-500/20 transition-all"></div>
-                    <h3 className="text-gray-400 font-medium mb-2">Total Principal</h3>
-                    <div className="text-5xl font-black text-white font-mono tracking-tighter">
-                        {principal} <span className="text-2xl text-brand-500">BTC</span>
+                    <div>
+                        <h3 className="text-gray-400 font-medium mb-2">Total Principal</h3>
+                        <div className="text-5xl font-black text-white font-mono tracking-tighter">
+                            {principal} <span className="text-2xl text-brand-500">BTC</span>
+                        </div>
+                        <div className="mt-4 text-sm text-gray-500 font-mono">
+                            ~$ {(principal * 65000).toLocaleString()} USD
+                        </div>
                     </div>
-                    <div className="mt-4 text-sm text-gray-500 font-mono">
-                        ~$ {(principal * 65000).toLocaleString()} USD
-                    </div>
+
+                    <button
+                        onClick={() => setIsWithdrawModalOpen(true)}
+                        className="mt-6 w-full py-3 bg-surface-dark border border-gray-700 hover:border-brand-500/50 text-gray-300 hover:text-white font-semibold rounded-xl transition-all">
+                        Manage Vault
+                    </button>
                 </div>
 
                 {/* Yield Card */}
@@ -100,30 +128,38 @@ export default function Dashboard() {
                     </div>
                     <div className="mt-4 flex justify-between items-center">
                         <span className="text-sm font-bold text-green-500 bg-green-900/30 px-2 py-1 rounded">~{apy}% APY</span>
-                        <button className="text-sm text-brand-400 hover:text-brand-300 font-semibold transition-colors underline decoration-brand-500/30 underline-offset-4">
-                            Claim Yield
+                        <button
+                            onClick={() => sendClaim()}
+                            disabled={isClaiming || accumulatedYield <= "0"}
+                            className="text-sm border border-brand-500/30 px-3 py-1 bg-brand-900/10 rounded-lg text-brand-400 hover:text-brand-300 font-semibold hover:bg-brand-500/20 transition-all disabled:opacity-30">
+                            {isClaiming ? "Claiming..." : "Claim Yield"}
                         </button>
                     </div>
                 </div>
 
                 {/* Dead Man's Switch Card */}
-                <div className="glass-panel rounded-3xl p-8 relative overflow-hidden group flex flex-col justify-between border border-accent/20">
-                    <div className="absolute -right-10 -top-10 w-40 h-40 bg-accent/10 rounded-full blur-2xl group-hover:bg-accent/20 transition-all"></div>
+                <div className={`glass-panel rounded-3xl p-8 relative overflow-hidden group flex flex-col justify-between border ${isCritical ? 'border-red-500/50 bg-red-900/10' : 'border-accent/20'}`}>
+                    <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-2xl transition-all ${isCritical ? 'bg-red-500/20 group-hover:bg-red-500/30 animate-pulse' : 'bg-accent/10 group-hover:bg-accent/20'}`}></div>
                     <div>
                         <h3 className="text-gray-400 font-medium mb-2 flex items-center gap-2">
-                            <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <svg className={`w-5 h-5 ${isCritical ? 'text-red-400' : 'text-accent'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             Next Check-in
                         </h3>
-                        <div className="text-5xl font-black text-accent font-mono tracking-tighter">
-                            {daysRemaining} <span className="text-2xl text-accent/50 text-base font-sans">Days</span>
+                        <div className={`text-5xl font-black font-mono tracking-tighter ${isCritical ? 'text-red-400' : 'text-accent'}`}>
+                            {daysRemaining} <span className={`text-2xl text-base font-sans ${isCritical ? 'text-red-400/50' : 'text-accent/50'}`}>Days</span>
                         </div>
+                        {isCritical && <div className="text-xs text-red-400/80 mt-2 font-bold uppercase tracking-wider animate-pulse">Critical Warning!</div>}
                     </div>
 
                     <button
                         onClick={() => send()}
                         disabled={isPending}
-                        className="mt-6 w-full py-4 bg-accent/10 hover:bg-accent disabled:opacity-50 hover:text-gray-900 text-accent font-bold rounded-xl transition-all border border-accent/30 hover:border-accent shadow-[0_0_15px_rgba(245,158,11,0.1)] hover:shadow-[0_0_20px_rgba(245,158,11,0.4)]">
-                        {isPending ? "Confirming..." : "Check In Now"}
+                        className={`mt-6 w-full py-4 font-bold rounded-xl transition-all border shadow-lg disabled:opacity-50
+                            ${isCritical
+                                ? 'bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white border-red-500/50 shadow-red-500/20 hover:shadow-[0_0_20px_rgba(239,68,68,0.6)]'
+                                : 'bg-accent/10 hover:bg-accent hover:text-gray-900 text-accent border-accent/30 hover:border-accent shadow-[0_0_15px_rgba(245,158,11,0.1)] hover:shadow-[0_0_20px_rgba(245,158,11,0.4)]'
+                            }`}>
+                        {isPending ? "Confirming..." : "Check In Now (I'm Alive)"}
                     </button>
                 </div>
 
@@ -163,24 +199,28 @@ export default function Dashboard() {
                                     strokeWidth="3"
                                 />
                                 <path
-                                    className="text-brand-500 transition-all duration-1000 ease-out"
-                                    strokeDasharray="100, 100"
+                                    className={`transition-all duration-1000 ease-out ${isCritical ? 'text-red-500' : 'text-brand-500'}`}
+                                    strokeDasharray={`${dashArrayValue}, 100`}
                                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                                     fill="none"
-                                    stroke="url(#gradient)"
+                                    stroke={isCritical ? "currentColor" : "url(#gradient)"}
                                     strokeWidth="3.5"
                                     strokeLinecap="round"
                                 />
-                                <defs>
-                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#0ea5e9" />
-                                        <stop offset="100%" stopColor="#f59e0b" />
-                                    </linearGradient>
-                                </defs>
+                                {!isCritical && (
+                                    <defs>
+                                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stopColor="#0ea5e9" />
+                                            <stop offset="100%" stopColor="#f59e0b" />
+                                        </linearGradient>
+                                    </defs>
+                                )}
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center pt-1">
-                                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400">100<span className="text-base text-brand-400">%</span></span>
-                                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold mt-1">Secured</span>
+                                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400">{percentageRemaining.toFixed(0)}<span className="text-base text-brand-400">%</span></span>
+                                <span className={`text-[10px] uppercase tracking-widest font-semibold mt-1 ${isCritical ? 'text-red-400 animate-pulse' : 'text-gray-500'}`}>
+                                    {isCritical ? 'Time Running Out' : 'Time Remaining'}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -188,6 +228,11 @@ export default function Dashboard() {
 
             </div>
 
+            <WithdrawModal
+                isOpen={isWithdrawModalOpen}
+                onClose={() => setIsWithdrawModalOpen(false)}
+                principal={principal}
+            />
         </div>
     );
 }
