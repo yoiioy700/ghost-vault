@@ -11,7 +11,14 @@ export default function Dashboard() {
     const { address } = useAccount();
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
-    const memory = useMemo(() => HonchoMemory.load("wizard_prefs"), []);
+    const memory = useMemo(() => {
+        if (typeof window === "undefined") return null;
+        try {
+            return HonchoMemory.load("wizard_prefs");
+        } catch {
+            return null;
+        }
+    }, []);
     const beneficiary = memory?.beneficiary || "0xNotSetYet... (Update in Wizard)";
 
     const { data: vaultStatus, error: vaultError } = useReadContract({
@@ -21,6 +28,8 @@ export default function Dashboard() {
         address: GHOST_VAULT_ADDRESS,
         watch: true
     });
+
+    console.log("Vault Status Debug:", vaultStatus);
 
     // get_vault returns (beneficiary, principal, deadline, period, window_duration)
     const onChainBeneficiary = vaultStatus ? (vaultStatus as any).beneficiary || (vaultStatus as any)[0] : undefined;

@@ -16,31 +16,39 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
     const rpc = (chain: any) => {
         switch (chain.id) {
             case sepolia.id:
-                return { nodeUrl: "https://starknet-sepolia.public.blastapi.io/rpc/v0_8" };
+                return { nodeUrl: "https://free-rpc.nethermind.io/sepolia-juno" };
             case mainnet.id:
-                return { nodeUrl: "https://starknet-mainnet.public.blastapi.io/rpc/v0_8" };
+                return { nodeUrl: "https://free-rpc.nethermind.io/mainnet-juno" };
             default:
-                return { nodeUrl: "https://starknet-sepolia.public.blastapi.io/rpc/v0_8" };
+                return { nodeUrl: "https://free-rpc.nethermind.io/sepolia-juno" };
         }
     };
     const provider = jsonRpcProvider({ rpc });
 
-    const connectors = [
-        // InjectedConnector tanpa ID — auto-detect SEMUA wallet yang ter-install di browser
-        new InjectedConnector({ options: { id: "braavos" } }),
-        new InjectedConnector({ options: { id: "argentX" } }),
-        // Argent Mobile via QR Code / WalletConnect
-        ArgentMobileConnector.init({
-            options: {
-                url: typeof window !== "undefined" ? window.location.href : "",
-                dappName: "Ghost Vault",
-                chainId: "SN_SEPOLIA",
-            },
-            inAppBrowserOptions: {},
-        }),
-        // Argent Web Wallet (login via email, no extension needed)
-        new WebWalletConnector({ url: "https://web.argent.xyz" }),
-    ];
+    const [connectors, setConnectors] = React.useState<any[]>([]);
+
+    React.useEffect(() => {
+        const initConnectors = async () => {
+            const argentMobile = await ArgentMobileConnector.init({
+                options: {
+                    url: typeof window !== "undefined" ? window.location.href : "",
+                    dappName: "Ghost Vault",
+                    chainId: "SN_SEPOLIA",
+                },
+                inAppBrowserOptions: {},
+            });
+
+            setConnectors([
+                new InjectedConnector({ options: { id: "braavos" } }),
+                new InjectedConnector({ options: { id: "argentX" } }),
+                argentMobile,
+                new WebWalletConnector({ url: "https://web.argent.xyz" }),
+            ]);
+        };
+        initConnectors();
+    }, []);
+
+    if (connectors.length === 0) return <>{children}</>;
 
     return (
         <StarknetConfig
