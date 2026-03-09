@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useAccount, useSendTransaction } from "@starknet-react/core";
-import { GHOST_VAULT_ADDRESS } from "@/lib/contract";
+import { useAccount, useSendTransaction, useReadContract } from "@starknet-react/core";
+import { GHOST_VAULT_ADDRESS, GHOST_VAULT_ABI } from "@/lib/contract";
 import { uint256 } from "starknet";
 import { HonchoMemory } from "@/lib/honcho";
 
@@ -47,6 +47,21 @@ export default function SetupWizard() {
         }
     }, []);
 
+    // Check if vault already exists on-chain
+    const { data: vaultData } = useReadContract({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        abi: GHOST_VAULT_ABI as any,
+        address: GHOST_VAULT_ADDRESS as `0x${string}`,
+        functionName: "get_vault",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        args: address ? [address as `0x${string}`] : ([] as any),
+        enabled: !!address,
+    });
+
+    // get_vault returns (beneficiary, principal, deadline, period, window_duration)
+    // deadline > 0 means vault is active
+    const vaultAlreadyExists = vaultData ? Number((vaultData as any[])[2]) > 0 : false;
+
     const calls = useMemo(() => {
         if (!depositAmount || isNaN(parseFloat(depositAmount)) || !beneficiary) return [];
         const amountWei = BigInt(Math.floor(parseFloat(depositAmount) * 1e18));
@@ -58,27 +73,28 @@ export default function SetupWizard() {
         const low = amountU256.low.toString();
         const high = amountU256.high.toString();
 
-        return [
-            // 1. Approve token transfer to vault contract
-            {
-                contractAddress: VAULT_TOKEN.address,
-                entrypoint: "approve",
-                calldata: [GHOST_VAULT_ADDRESS, low, high],
-            },
-            // 2. Create vault with beneficiary + schedule
-            {
-                contractAddress: GHOST_VAULT_ADDRESS,
-                entrypoint: "create_vault",
-                calldata: [beneficiary, periodSeconds.toString(), windowDurationSeconds.toString()],
-            },
-            // 3. Deposit approved tokens into vault
-            {
-                contractAddress: GHOST_VAULT_ADDRESS,
-                entrypoint: "deposit",
-                calldata: [low, high],
-            },
-        ];
-    }, [depositAmount, beneficiary, checkinPeriod]);
+        const approveTx = {
+            contractAddress: VAULT_TOKEN.address,
+            entrypoint: "approve",
+            calldata: [GHOST_VAULT_ADDRESS, low, high],
+        };
+        const createVaultTx = {
+            contractAddress: GHOST_VAULT_ADDRESS,
+            entrypoint: "create_vault",
+            calldata: [beneficiary, periodSeconds.toString(), windowDurationSeconds.toString()],
+        };
+        const depositTx = {
+            contractAddress: GHOST_VAULT_ADDRESS,
+            entrypoint: "deposit",
+            calldata: [low, high],
+        };
+
+        if (vaultAlreadyExists) {
+            // Vault exists — skip create_vault, just approve + deposit
+            return [approveTx, depositTx];
+        }
+        return [approveTx, createVaultTx, depositTx];
+    }, [depositAmount, beneficiary, checkinPeriod, vaultAlreadyExists]);
 
     const { send, isPending, data } = useSendTransaction({ calls });
 
@@ -218,18 +234,29 @@ export default function SetupWizard() {
 
                     {/* Tx Summary */}
                     <section className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/[0.05]">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-3">Signing 1 Multicall:</p>
+                        <div className="flex items-center justify-between mb-3">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-600">
+                                Signing 1 Multicall · {vaultAlreadyExists ? "2" : "3"} ops
+                            </p>
+                            {vaultAlreadyExists && (
+                                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Vault exists — skip create</span>
+                            )}
+                        </div>
                         <div className="flex flex-col gap-1.5">
-                            {[
-                                { n: "01", text: `Approve ${depositAmount || "?"} STRK`, color: "text-violet-400" },
-                                { n: "02", text: `Create vault · ${checkinPeriod}d period`, color: "text-zinc-400" },
-                                { n: "03", text: `Deposit ${depositAmount || "?"} STRK`, color: "text-violet-400" },
-                            ].map(({ n, text, color }) => (
-                                <div key={n} className="flex items-center gap-3 text-sm">
-                                    <span className="text-zinc-700 font-mono text-xs w-5">{n}</span>
-                                    <span className={`font-medium ${color}`}>{text}</span>
+                            <div className="flex items-center gap-3 text-sm">
+                                <span className="text-zinc-700 font-mono text-xs w-5">01</span>
+                                <span className="font-medium text-violet-400">Approve {depositAmount || "?"} STRK</span>
+                            </div>
+                            {!vaultAlreadyExists && (
+                                <div className="flex items-center gap-3 text-sm">
+                                    <span className="text-zinc-700 font-mono text-xs w-5">02</span>
+                                    <span className="font-medium text-zinc-400">Create vault · {checkinPeriod}d period</span>
                                 </div>
-                            ))}
+                            )}
+                            <div className="flex items-center gap-3 text-sm">
+                                <span className="text-zinc-700 font-mono text-xs w-5">{vaultAlreadyExists ? "02" : "03"}</span>
+                                <span className="font-medium text-violet-400">Deposit {depositAmount || "?"} STRK</span>
+                            </div>
                         </div>
                     </section>
 
