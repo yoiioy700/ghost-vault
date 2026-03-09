@@ -1,6 +1,7 @@
 "use client";
 
-import { useAccount, useReadContract, useSendTransaction } from "@starknet-react/core";
+import { useAccount, useReadContract, useSendTransaction, useDisconnect } from "@starknet-react/core";
+import { useStarknetkitConnectModal } from "starknetkit";
 import { useMemo, useState } from "react";
 import { GHOST_VAULT_ADDRESS, GHOST_VAULT_ABI } from "@/lib/contract";
 import { HonchoMemory } from "@/lib/honcho";
@@ -70,208 +71,251 @@ export default function Dashboard() {
     const apy = 4.2;
     const accumulatedYield = (principal * 0.042 * (30 - daysRemaining) / 365).toFixed(4);
 
+    const { starknetkitConnectModal } = useStarknetkitConnectModal({ modalMode: "alwaysAsk" });
+    const { disconnect } = useDisconnect();
+
+    const handleConnect = async () => {
+        await starknetkitConnectModal();
+    };
+
     if (!address) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh]">
-                <h2 className="text-2xl font-bold text-gray-400">Please connect your wallet to view your Dashboard.</h2>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-black text-zinc-100 font-sans px-4">
+                {/* Subtle top nav */}
+                <div className="fixed top-0 inset-x-0 h-16 border-b border-white/[0.06] bg-black/80 backdrop-blur-md flex items-center px-6">
+                    <a href="/" className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-md bg-[#111] flex items-center justify-center border border-white/[0.08]">
+                            <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        <span className="text-sm font-medium text-zinc-300">Ghost Vault</span>
+                    </a>
+                </div>
+                <div className="flex flex-col items-center justify-center p-10 rounded-2xl bg-[#0a0a0a] border border-white/[0.08] shadow-2xl max-w-md w-full text-center">
+                    <div className="w-14 h-14 rounded-full bg-[#111] mb-6 flex items-center justify-center border border-white/[0.06]">
+                        <svg className="w-6 h-6 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">Connect your wallet</h2>
+                    <p className="text-sm text-zinc-500 mb-8 leading-relaxed">Connect your Starknet wallet to access Ghost Vault and manage your digital legacy.</p>
+                    <div className="w-full">
+                        <button
+                            onClick={handleConnect}
+                            className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-white hover:bg-zinc-200 text-black font-semibold text-sm rounded-xl transition-all duration-150 cursor-pointer"
+                        >
+                            Connect Wallet
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }
 
     if (!vaultActive) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-                <h2 className="text-3xl font-bold text-brand-100 mb-4">You don't have an active vault.</h2>
-                <p className="text-gray-400 mb-8">Secure your assets and start earning yield today.</p>
-                <button className="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-bold shadow-lg transition-transform hover:-translate-y-1">
-                    Create Ghost Vault
-                </button>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-black text-zinc-100 font-sans px-4">
+                <div className="flex flex-col items-center justify-center p-12 rounded-2xl bg-[#0a0a0a] border border-white/[0.08] shadow-2xl max-w-lg w-full text-center relative overflow-hidden">
+                    {/* Subtle top highlight typical of Linear headers */}
+                    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
+
+                    <div className="w-16 h-16 rounded-full bg-blue-500/5 mb-6 flex items-center justify-center border border-blue-500/10">
+                        <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </div>
+                    <h2 className="text-2xl font-semibold text-white tracking-tight mb-3">No Active Vault</h2>
+                    <p className="text-sm text-zinc-500 mb-8 leading-relaxed max-w-sm mx-auto">You haven't secured any assets in Ghost Vault yet. Initialize a vault to protect your crypto with a dead man's switch.</p>
+                    <a href="/setup" className="w-full flex items-center justify-center py-3 text-sm font-medium bg-white hover:bg-zinc-200 text-black rounded-lg transition-colors duration-150">
+                        Setup Your Vault
+                    </a>
+                </div>
             </div>
         )
     }
 
     return (
-        <div className="relative min-h-screen w-full font-sans bg-zinc-950 text-zinc-100 overflow-hidden pt-10">
-            {/* Ambient background glows */}
-            <div className="absolute top-[-200px] right-[-200px] w-[800px] h-[800px] bg-blue-500/15 rounded-full blur-[150px] pointer-events-none"></div>
-            <div className="absolute bottom-[-100px] left-[-100px] w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[150px] pointer-events-none"></div>
+        <div className="min-h-screen w-full font-sans bg-black text-zinc-100 overflow-y-auto selection:bg-blue-500/30">
+            {/* Top Nav */}
+            <nav className="h-16 border-b border-white/[0.06] bg-[#0a0a0a] flex items-center justify-between px-6 lg:px-12 sticky top-0 z-50">
+                <a href="/" className="flex items-center gap-2 group">
+                    <div className="w-7 h-7 rounded-md bg-[#111] flex items-center justify-center border border-white/[0.08] transition-colors group-hover:border-white/[0.14]">
+                        <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Ghost Vault</span>
+                </a>
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#111] border border-white/[0.08] text-xs font-mono text-zinc-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        {address.slice(0, 6)}...{address.slice(-4)}
+                    </div>
+                    <button
+                        onClick={() => disconnect()}
+                        className="px-3 py-1.5 rounded-lg bg-transparent border border-white/[0.08] hover:border-white/[0.15] text-xs font-medium text-zinc-500 hover:text-zinc-300 transition-all"
+                    >
+                        Disconnect
+                    </button>
+                </div>
+            </nav>
 
-            <div className="max-w-7xl mx-auto w-full px-6 lg:px-12 relative z-10 pb-20">
-                {/* Header */}
+            <div className="max-w-[1000px] mx-auto w-full px-6 py-12 relative z-10">
+                {/* Header Subdued Linear Style */}
                 <div className="flex justify-between items-end mb-12">
                     <div className="flex flex-col gap-2">
-                        <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-white font-sans">
-                            My Vault
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                            <span className="text-xs font-mono tracking-wider text-emerald-500 uppercase">
+                                Active Vault
+                            </span>
+                        </div>
+                        <h1 className="text-4xl font-semibold tracking-tight text-white mb-1">
+                            Dashboard
                         </h1>
-                        <p className="text-sm font-medium text-zinc-400 tracking-wide uppercase">
-                            Endur.fi xBTC • Starknet L2
+                        <p className="text-sm text-zinc-500">
+                            Endur.fi xBTC on Starknet L2
                         </p>
                     </div>
-
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
-                        <span className="text-xs font-semibold tracking-wider text-emerald-500 uppercase">
-                            Active
-                        </span>
-                    </div>
-                </div>
-
-                {/* Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 w-full">
-
-                    {/* Principal Card */}
-                    <div className="flex flex-col justify-between p-8 rounded-2xl bg-zinc-900/40 backdrop-blur-2xl border border-white/5 shadow-2xl">
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2 text-zinc-400">
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
-                                <span className="text-sm font-medium">Total Principal</span>
-                            </div>
-                            <div className="flex items-baseline gap-2 mt-2">
-                                <span className="text-5xl font-bold tracking-tighter text-white">
-                                    {principal}
-                                </span>
-                                <span className="text-lg font-semibold text-blue-500">BTC</span>
-                            </div>
-                            <div className="text-sm text-zinc-500 mt-1">
-                                ~$ {(principal * 65000).toLocaleString()} USD
-                            </div>
-                        </div>
+                    <div>
                         <button
                             onClick={() => setIsWithdrawModalOpen(true)}
-                            className="mt-8 w-full py-3 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 text-zinc-200 text-sm font-medium rounded-xl transition-colors duration-200">
+                            className="px-4 py-2 bg-[#111] hover:bg-[#1a1a1a] border border-white/[0.08] text-zinc-300 text-sm font-medium rounded-lg transition-colors duration-150">
                             Manage Vault
                         </button>
                     </div>
+                </div>
 
-                    {/* Yield Card */}
-                    <div className="flex flex-col justify-between p-8 rounded-2xl bg-zinc-900/40 backdrop-blur-2xl border border-white/5 shadow-2xl">
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2 text-zinc-400">
-                                <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                                <span className="text-sm font-medium">Earned Yield</span>
+                {/* Grid layout */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 w-full">
+
+                    {/* Principal Card */}
+                    <div className="flex flex-col justify-between p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08] shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 inset-x-0 h-px bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors"></div>
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-zinc-500 mb-2">
+                                <span className="text-xs font-medium uppercase tracking-wider">Total Principal</span>
                             </div>
-                            <div className="flex items-baseline gap-2 mt-2">
-                                <span className="text-5xl font-bold tracking-tighter text-white">
-                                    +{accumulatedYield}
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-4xl font-semibold tracking-tight text-white">
+                                    {principal}
                                 </span>
-                                <span className="text-lg font-semibold text-emerald-500">BTC</span>
+                                <span className="text-sm font-medium text-zinc-500">BTC</span>
                             </div>
-                        </div>
-                        <div className="flex items-center justify-between mt-8 pt-3">
-                            <span className="text-sm font-semibold text-emerald-500">
-                                {apy}% APY
-                            </span>
-                            <button
-                                onClick={() => sendClaim()}
-                                disabled={isClaiming || accumulatedYield <= "0"}
-                                className="px-5 py-2.5 bg-zinc-100 hover:bg-white text-zinc-900 text-sm font-semibold rounded-lg transition-colors duration-200 shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50">
-                                {isClaiming ? "Claiming..." : "Claim"}
-                            </button>
+                            <div className="text-xs text-zinc-500 mt-2 font-mono">
+                                ≈ ${(principal * 65000).toLocaleString()} USD
+                            </div>
                         </div>
                     </div>
 
-                    {/* Check-in Card */}
-                    <div className={`flex flex-col justify-between p-8 rounded-2xl backdrop-blur-2xl shadow-2xl transition-all duration-300 ${isCritical ? 'bg-red-500/10 border border-red-500/20' : 'bg-zinc-900/40 border border-white/5'}`}>
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2 text-zinc-400">
-                                <svg className={`w-4 h-4 ${isCritical ? 'text-red-500' : 'text-zinc-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <span className={`text-sm font-medium ${isCritical ? 'text-red-500' : 'text-zinc-400'}`}>Next Check-in</span>
+                    {/* Yield Card */}
+                    <div className="flex flex-col justify-between p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08] shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 inset-x-0 h-px bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors"></div>
+                        <div className="flex flex-col gap-1 mb-4">
+                            <div className="flex items-center justify-between text-zinc-500 mb-2">
+                                <span className="text-xs font-medium uppercase tracking-wider">Earned Yield</span>
+                                <span className="text-xs font-medium text-emerald-500/80 bg-emerald-500/10 px-2 py-0.5 rounded flex items-center gap-1">
+                                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 2.5V9.5M6 2.5L3.5 5M6 2.5L8.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    {apy}%
+                                </span>
                             </div>
-                            <div className="flex items-baseline gap-2 mt-2">
-                                <span className={`text-5xl font-bold tracking-tighter ${isCritical ? 'text-red-500' : 'text-zinc-100'}`}>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-4xl font-semibold tracking-tight text-emerald-400">
+                                    {accumulatedYield}
+                                </span>
+                                <span className="text-sm font-medium text-zinc-500">BTC</span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => sendClaim()}
+                            disabled={isClaiming || accumulatedYield <= "0"}
+                            className="w-full py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-medium rounded-md transition-colors duration-150 disabled:opacity-40 border border-transparent hover:border-white/10">
+                            {isClaiming ? "Claiming..." : "Harvest Yield"}
+                        </button>
+                    </div>
+
+                    {/* Check-in Card */}
+                    <div className={`flex flex-col justify-between p-6 rounded-xl border shadow-sm relative overflow-hidden group transition-colors ${isCritical ? 'bg-red-950/20 border-red-500/30' : 'bg-[#0a0a0a] border-white/[0.08]'}`}>
+                        <div className={`absolute top-0 inset-x-0 h-px transition-colors ${isCritical ? 'bg-red-500/40' : 'bg-white/[0.02] group-hover:bg-white/[0.05]'}`}></div>
+                        <div className="flex flex-col gap-1 mb-4">
+                            <div className="flex items-center justify-between text-zinc-500 mb-2">
+                                <span className={`text-xs font-medium uppercase tracking-wider ${isCritical ? 'text-red-400/80' : 'text-zinc-500'}`}>Next Check-in</span>
+                                {isCritical && (
+                                    <span className="flex h-2 w-2 relative">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex items-baseline gap-2">
+                                <span className={`text-4xl font-semibold tracking-tight ${isCritical ? 'text-red-400' : 'text-white'}`}>
                                     {daysRemaining}
                                 </span>
-                                <span className={`text-lg transition-colors ${isCritical ? 'text-red-500/70' : 'text-zinc-500'}`}>
-                                    Days
+                                <span className={`text-sm font-medium ${isCritical ? 'text-red-500/60' : 'text-zinc-500'}`}>
+                                    days
                                 </span>
                             </div>
-                            {isCritical && (
-                                <div className="text-xs font-semibold text-red-500 mt-1 uppercase tracking-wider animate-pulse">
-                                    Critical Warning!
-                                </div>
-                            )}
+                            <div className="text-xs text-zinc-500 mt-2 font-mono">
+                                {percentageRemaining.toFixed(1)}% safe period remaining
+                            </div>
                         </div>
                         <button
                             onClick={() => send()}
                             disabled={isPending}
-                            className={`mt-8 w-full py-3 text-sm font-semibold rounded-xl transition-all duration-200 border disabled:opacity-50 
+                            className={`w-full py-2 text-xs font-medium rounded-md transition-all duration-150 disabled:opacity-40 border
                                 ${isCritical
-                                    ? 'bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)]'
-                                    : 'bg-zinc-800/80 text-white border-zinc-700 hover:bg-zinc-800 hover:border-zinc-600'
+                                    ? 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40'
+                                    : 'bg-white text-black border-transparent hover:bg-zinc-200 hover:shadow-[0_0_12px_rgba(255,255,255,0.2)]'
                                 }`}>
-                            {isPending ? "Confirming..." : "Check In Now (I'm Alive)"}
+                            {isPending ? "Confirming..." : "Check In Now"}
                         </button>
                     </div>
 
                 </div>
 
-                {/* Vault Distribution Plan */}
-                <div className="w-full flex flex-col md:flex-row gap-10 items-center p-10 rounded-2xl bg-zinc-900/40 backdrop-blur-2xl border border-white/5 shadow-2xl">
-                    <div className="flex-1 flex flex-col gap-8 w-full">
-                        <h3 className="text-2xl font-bold tracking-tight text-white border-b border-white/5 pb-6">
-                            Vault Distribution Plan
-                        </h3>
+                {/* Dead Man's Switch Visualization */}
+                <div className="mt-4 w-full p-8 rounded-xl bg-[#0a0a0a] border border-white/[0.08] shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 inset-x-0 h-px bg-white/[0.02]"></div>
 
-                        <div className="flex flex-col gap-4">
-                            <div className="flex justify-between items-end w-full">
-                                <div className="flex flex-col gap-2">
-                                    <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
-                                        Primary Beneficiary
-                                    </span>
-                                    <div className="px-4 py-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50 shadow-inner">
-                                        <span className="text-sm text-zinc-100 font-mono tracking-wide">
-                                            {displayBeneficiary}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                                    <span className="text-xs font-bold text-blue-500 uppercase tracking-wide">
-                                        100% Allocation
-                                    </span>
-                                </div>
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+                        <div className="flex-1 flex flex-col gap-6">
+                            <div>
+                                <h3 className="text-lg font-medium text-white mb-1">Trigger Condition</h3>
+                                <p className="text-sm text-zinc-500 leading-relaxed max-w-xl">
+                                    If the check-in timer reaches zero, the dead man's switch activates. 100% of your vault balance and yield will be trustlessly transferred to your designated beneficiary address below.
+                                </p>
                             </div>
 
-                            {/* Progress track */}
-                            <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden shadow-inner">
-                                <div className="h-full bg-blue-500 rounded-full w-full" style={{ width: '100%' }}></div>
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-center justify-between text-xs font-medium">
+                                    <span className="text-zinc-500 uppercase tracking-widest">Primary Beneficiary</span>
+                                    <span className="text-blue-400 tracking-wide bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">100% Allocation</span>
+                                </div>
+                                <div className="px-4 py-3 rounded-lg bg-[#111] border border-white/[0.05] flex items-center font-mono text-sm text-zinc-300">
+                                    {displayBeneficiary}
+                                </div>
                             </div>
                         </div>
 
-                        <p className="text-sm text-zinc-400 leading-relaxed">
-                            Upon expiration of the Dead Man's Switch Check-in countdown, 100% of the vault principal and accumulated automated yields will be instantly and trustlessly distributed to this address.
-                        </p>
-                    </div>
-
-                    {/* Circular visual graph */}
-                    <div className="relative w-40 h-40 shrink-0 flex items-center justify-center bg-zinc-900/50 rounded-full border border-white/5 shadow-2xl p-4">
-                        <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
-                            <path
-                                className="text-zinc-800"
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                            />
-                            <path
-                                className={`transition-all duration-1000 ease-out ${isCritical ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]'}`}
-                                strokeDasharray={`${dashArrayValue}, 100`}
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                                strokeLinecap="round"
-                            />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                            <div className="flex items-baseline">
-                                <span className={`text-3xl font-bold tracking-tighter ${isCritical ? 'text-red-500' : 'text-zinc-100'}`}>
-                                    {percentageRemaining.toFixed(0)}
+                        {/* Minimalist Gauge instead of heavy glow circle */}
+                        <div className="shrink-0 w-32 h-32 relative flex items-center justify-center bg-[#111] rounded-full border border-white/[0.05]">
+                            <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
+                                <path
+                                    className="text-white/[0.03]"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                />
+                                <path
+                                    className={`transition-all duration-1000 ease-out ${isCritical ? 'text-red-500' : 'text-blue-500'}`}
+                                    strokeDasharray={`${dashArrayValue}, 100`}
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className={`text-2xl font-semibold tracking-tighter ${isCritical ? 'text-red-400' : 'text-zinc-200'}`}>
+                                    {daysRemaining}
                                 </span>
-                                <span className={`text-sm ml-0.5 ${isCritical ? 'text-red-400' : 'text-blue-500'}`}>%</span>
+                                <span className="text-[10px] uppercase tracking-widest text-zinc-600 mt-0.5">Days</span>
                             </div>
-                            <span className={`text-[9px] font-bold tracking-widest uppercase mt-1 ${isCritical ? 'text-red-500 animate-pulse' : 'text-zinc-500'}`}>
-                                {isCritical ? 'Time Running Out' : 'Time Remaining'}
-                            </span>
                         </div>
                     </div>
                 </div>

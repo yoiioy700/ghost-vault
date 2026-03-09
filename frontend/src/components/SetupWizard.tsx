@@ -79,47 +79,47 @@ export default function SetupWizard() {
 
     if (!address) {
         return (
-            <div className="glass-panel p-8 text-center rounded-2xl w-full max-w-lg mx-auto mt-20 text-gray-400">
+            <div className="bg-[var(--bg-surface)] p-8 text-center rounded-[var(--radius-lg)] border border-[var(--border-subtle)] w-full max-w-lg mx-auto text-[var(--text-secondary)]">
                 Please connect your wallet to create a Ghost Vault.
             </div>
         );
     }
 
     const renderStep1 = () => (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-2xl font-bold mb-4 text-brand-100">Step 1: Deposit Bitcoin</h2>
-            <p className="text-gray-400 text-sm mb-6">How much BTC do you want to secure in the vault?</p>
+        <div className="animate-fade-in-up">
+            <h2 className="text-2xl font-display font-semibold mb-2 text-[var(--text-primary)] tracking-tight">Step 1: Deposit Bitcoin</h2>
+            <p className="text-[var(--text-secondary)] text-sm mb-8">How much BTC do you want to secure in the vault?</p>
             <div className="relative">
                 <input
                     type="number"
                     placeholder="0.00"
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
-                    className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-4 px-6 focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all text-2xl font-mono"
+                    className="w-full bg-[var(--bg-page)] border border-[var(--border-subtle)] focus:border-[var(--accent-primary)] text-[var(--text-primary)] rounded-[var(--radius-md)] py-4 px-6 focus:ring-4 focus:ring-[var(--accent-primary-muted)] focus:outline-none transition-all text-3xl font-mono shadow-inner"
                 />
-                <span className="absolute right-6 top-4 text-gray-500 font-bold text-xl">BTC</span>
+                <span className="absolute right-6 top-5 text-[var(--text-tertiary)] font-bold text-xl">BTC</span>
             </div>
         </div>
     );
 
     const renderStep2 = () => (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-2xl font-bold mb-4 text-brand-100">Step 2: Choose Yield Strategy</h2>
-            <p className="text-gray-400 text-sm mb-6">Your BTC will earn passive yield while securely locked.</p>
+        <div className="animate-fade-in-up">
+            <h2 className="text-2xl font-display font-semibold mb-2 text-[var(--text-primary)] tracking-tight">Step 2: Choose Yield Strategy</h2>
+            <p className="text-[var(--text-secondary)] text-sm mb-8">Your BTC will earn passive yield while securely locked.</p>
             <div className="space-y-4">
                 {TIERS.map((tier) => (
                     <div
                         key={tier.id}
                         onClick={() => setSelectedTier(tier)}
-                        className={`cursor-pointer border p-5 rounded-xl transition-all ${selectedTier.id === tier.id ? 'border-brand-500 bg-brand-900/30' : 'border-slate-700 bg-slate-800/30 hover:border-slate-500'}`}
+                        className={`cursor-pointer border p-5 rounded-[var(--radius-md)] transition-all ${selectedTier.id === tier.id ? 'border-[var(--accent-primary)] bg-[var(--accent-primary-muted)]' : 'border-[var(--border-subtle)] bg-[var(--bg-page)] hover:border-[var(--border-hover)]'}`}
                     >
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-lg font-bold text-white">{tier.name}</span>
-                            <span className="text-green-400 font-mono font-bold bg-green-900/30 px-3 py-1 rounded-full text-sm">{tier.apy} APY</span>
+                        <div className="flex justify-between items-center mb-3">
+                            <span className="text-lg font-semibold text-[var(--text-primary)]">{tier.name}</span>
+                            <span className="text-[var(--success)] font-mono font-bold bg-[var(--success)]/10 px-3 py-1 rounded-[var(--radius-pill)] text-xs border border-[var(--success)]/20">{tier.apy} APY</span>
                         </div>
-                        <div className="text-sm text-gray-400 flex justify-between">
+                        <div className="text-sm text-[var(--text-secondary)] flex justify-between items-end">
                             <span>Via {tier.protocol}</span>
-                            <span className="text-gray-500 text-xs uppercase tracking-wider">Risk: {tier.risk}</span>
+                            <span className="text-[var(--text-tertiary)] text-[10px] font-bold uppercase tracking-wider">Risk: {tier.risk}</span>
                         </div>
                     </div>
                 ))}
@@ -128,67 +128,67 @@ export default function SetupWizard() {
     );
 
     const renderStep3 = () => (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-2xl font-bold mb-4 text-brand-100">Step 3: Dead Man's Switch</h2>
-            <p className="text-gray-400 text-sm mb-6">If you don't "check-in" within this period, the inheritance triggers.</p>
+        <div className="animate-fade-in-up">
+            <h2 className="text-2xl font-display font-semibold mb-2 text-[var(--text-primary)] tracking-tight">Step 3: Dead Man's Switch</h2>
+            <p className="text-[var(--text-secondary)] text-sm mb-8">If you don't check-in within this period, inheritance triggers.</p>
 
-            <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-2 gap-3 mb-8">
                 {PERIODS.map((p) => (
                     <button
                         key={p}
                         onClick={() => setCheckinPeriod(p)}
-                        className={`py-3 rounded-lg border font-mono transition-all ${checkinPeriod === p ? 'border-accent bg-accent/20 text-accent' : 'border-slate-700 text-gray-400 hover:border-slate-500'}`}
+                        className={`py-3 rounded-[var(--radius-md)] border font-mono text-sm font-medium transition-all ${checkinPeriod === p ? 'border-[var(--accent-primary)] bg-[var(--accent-primary-muted)] text-[var(--accent-primary)]' : 'border-[var(--border-subtle)] bg-[var(--bg-page)] text-[var(--text-secondary)] hover:border-[var(--border-hover)]'}`}
                     >
                         {p} Days
                     </button>
                 ))}
             </div>
 
-            <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-400 mb-2">Beneficiary Starknet Address</label>
+            <div className="mt-8">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)] mb-2">Beneficiary Starknet Address</label>
                 <input
                     type="text"
                     placeholder="0x..."
                     value={beneficiary}
                     onChange={(e) => setBeneficiary(e.target.value)}
-                    className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 px-4 focus:ring-2 focus:ring-accent focus:outline-none font-mono text-sm"
+                    className="w-full bg-[var(--bg-page)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-[var(--radius-sm)] py-3 px-4 focus:ring-4 focus:ring-[var(--accent-primary-muted)] focus:border-[var(--accent-primary)] focus:outline-none font-mono text-sm transition-all"
                 />
-                <p className="text-xs text-gray-500 mt-2">100% of principal + yield goes here if the timer expires.</p>
+                <p className="text-xs text-[var(--text-secondary)] mt-3">100% of principal + yield goes here if timer expires.</p>
             </div>
         </div>
     );
 
     const renderStep4 = () => (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-2xl font-bold mb-4 text-brand-100">Review & Confirm</h2>
+        <div className="animate-fade-in-up">
+            <h2 className="text-2xl font-display font-semibold mb-6 text-[var(--text-primary)] tracking-tight">Review & Confirm</h2>
 
-            <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6 space-y-4 font-mono text-sm">
-                <div className="flex justify-between border-b border-slate-700 pb-2">
-                    <span className="text-gray-400">Total Deposit</span>
-                    <span className="text-white font-bold">{depositAmount || "0"} BTC</span>
+            <div className="bg-[var(--bg-page)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] p-6 space-y-5 font-mono text-sm">
+                <div className="flex justify-between border-b border-[var(--border-subtle)] pb-4">
+                    <span className="text-[var(--text-secondary)]">Total Deposit</span>
+                    <span className="text-[var(--text-primary)] font-bold text-base">{depositAmount || "0"} BTC</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-700 pb-2">
-                    <span className="text-gray-400">Strategy</span>
-                    <span className="text-brand-100">{selectedTier.name} ({selectedTier.apy})</span>
+                <div className="flex justify-between border-b border-[var(--border-subtle)] pb-4">
+                    <span className="text-[var(--text-secondary)]">Strategy</span>
+                    <span className="text-[var(--text-primary)]">{selectedTier.name} <span className="text-[var(--success)]">({selectedTier.apy})</span></span>
                 </div>
-                <div className="flex justify-between border-b border-slate-700 pb-2">
-                    <span className="text-gray-400">Check-in Period</span>
-                    <span className="text-accent">{checkinPeriod} Days</span>
+                <div className="flex justify-between border-b border-[var(--border-subtle)] pb-4">
+                    <span className="text-[var(--text-secondary)]">Check-in Period</span>
+                    <span className="text-[var(--accent-primary)] font-bold">{checkinPeriod} Days</span>
                 </div>
-                <div>
-                    <span className="text-gray-400 block mb-1">Beneficiary Address</span>
-                    <span className="text-gray-300 break-all text-xs">{beneficiary || "Not set"}</span>
+                <div className="pt-2">
+                    <span className="text-[var(--text-secondary)] block mb-2">Beneficiary Address</span>
+                    <span className="text-[var(--text-primary)] break-all text-xs opacity-80">{beneficiary || "Not set"}</span>
                 </div>
             </div>
         </div>
     );
 
     return (
-        <div className="w-full max-w-xl mx-auto mt-16 glass-panel rounded-3xl overflow-hidden shadow-2xl relative">
-            {/* Progress Bar */}
-            <div className="h-2 bg-slate-800 w-full absolute top-0 left-0">
+        <div className="w-full max-w-xl mx-auto bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] overflow-hidden shadow-2xl relative">
+            {/* Minimal Progress Bar */}
+            <div className="h-1 w-full bg-[#0a0a0a] absolute top-0 left-0">
                 <div
-                    className="h-full bg-gradient-to-r from-brand-500 to-accent transition-all duration-500 ease-out"
+                    className="h-full bg-[var(--accent-primary)] transition-all duration-500 ease-out"
                     style={{ width: `${(step / 4) * 100}%` }}
                 />
             </div>
@@ -199,28 +199,28 @@ export default function SetupWizard() {
                 {step === 3 && renderStep3()}
                 {step === 4 && renderStep4()}
 
-                <div className="mt-10 flex justify-between items-center pt-6 border-t border-slate-800">
+                <div className="mt-10 flex justify-between items-center pt-6 border-t border-[var(--border-subtle)]">
                     <button
                         onClick={handleBack}
-                        className={`px-4 py-2 text-gray-400 hover:text-white transition-colors ${step === 1 ? 'invisible' : ''}`}
+                        className={`px-4 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium ${step === 1 ? 'invisible' : ''}`}
                     >
-                        &larr; Back
+                        Back
                     </button>
 
                     {step < 4 ? (
                         <button
                             onClick={handleNext}
-                            className="px-6 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-semibold shadow-lg transition-transform hover:-translate-y-0.5"
+                            className="btn-primary"
                         >
-                            Continue &rarr;
+                            Continue
                         </button>
                     ) : (
                         <button
                             onClick={() => send()}
                             disabled={isPending || !calls.length}
-                            className="px-8 py-3 bg-gradient-to-r from-brand-500 to-accent hover:from-brand-400 hover:to-yellow-400 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg shadow-brand-500/20 transition-all hover:scale-105"
+                            className="btn-primary disabled:opacity-50"
                         >
-                            {isPending ? "Confirming in Wallet..." : data ? "Tx Sent!" : "Confirm Setup"}
+                            {isPending ? "Confirming..." : data ? "Tx Sent!" : "Confirm Setup"}
                         </button>
                     )}
                 </div>
