@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useAccount, useSendTransaction, useReadContract } from "@starknet-react/core";
 import { GHOST_VAULT_ADDRESS, GHOST_VAULT_ABI } from "@/lib/contract";
-import { uint256 } from "starknet";
+import { uint256, CallData } from "starknet";
 import { HonchoMemory } from "@/lib/honcho";
 
 // The deployed contract is single-token: hardcoded to STRK at deploy time.
@@ -15,7 +15,6 @@ const VAULT_TOKEN = {
 };
 
 const COMING_SOON_TOKENS = ["ETH", "xBTC", "USDC"];
-
 
 const PERIODS = [
     { days: 14, label: "2 weeks" },
@@ -32,13 +31,11 @@ const STRATEGIES = [
 export default function SetupWizard() {
     const { address } = useAccount();
 
-    // Form state
     const [depositAmount, setDepositAmount] = useState("");
     const [strategy, setStrategy] = useState(STRATEGIES[0]);
     const [checkinPeriod, setCheckinPeriod] = useState(30);
     const [beneficiary, setBeneficiary] = useState("");
 
-    // Load saved prefs
     useMemo(() => {
         const mem = HonchoMemory.load("wizard_prefs");
         if (mem) {
@@ -47,7 +44,6 @@ export default function SetupWizard() {
         }
     }, []);
 
-    // Check if vault already exists on-chain
     const { data: vaultData } = useReadContract({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         abi: GHOST_VAULT_ABI as any,
@@ -58,8 +54,6 @@ export default function SetupWizard() {
         enabled: !!address,
     });
 
-    // get_vault returns (beneficiary, principal, deadline, period, window_duration)
-    // deadline > 0 means vault is active
     const vaultAlreadyExists = vaultData ? Number((vaultData as any[])[2]) > 0 : false;
 
     const calls = useMemo(() => {
@@ -69,24 +63,29 @@ export default function SetupWizard() {
         const periodSeconds = checkinPeriod * 86400;
         const windowDurationSeconds = 7 * 86400;
 
-        // All calldata must be strings for Starknet serialization
-        const low = amountU256.low.toString();
-        const high = amountU256.high.toString();
-
         const approveTx = {
             contractAddress: VAULT_TOKEN.address,
             entrypoint: "approve",
-            calldata: [GHOST_VAULT_ADDRESS, low, high],
+            calldata: CallData.compile({
+                spender: GHOST_VAULT_ADDRESS,
+                amount: amountU256
+            }),
         };
         const createVaultTx = {
             contractAddress: GHOST_VAULT_ADDRESS,
             entrypoint: "create_vault",
-            calldata: [beneficiary, periodSeconds.toString(), windowDurationSeconds.toString()],
+            calldata: CallData.compile({
+                beneficiary,
+                period: periodSeconds,
+                window_duration: windowDurationSeconds
+            }),
         };
         const depositTx = {
             contractAddress: GHOST_VAULT_ADDRESS,
             entrypoint: "deposit",
-            calldata: [low, high],
+            calldata: CallData.compile({
+                amount: amountU256
+            }),
         };
 
         if (vaultAlreadyExists) {
