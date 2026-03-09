@@ -7,16 +7,50 @@ import { uint256 } from "starknet";
 import { HonchoMemory } from "@/lib/honcho";
 
 const TIERS = [
-    { id: "conservative", name: "Conservative", protocol: "Endur.fi (xBTC)", apy: "~4%", risk: "Low", description: "Default safe strategy. Stable BTC-denominated yield." },
+    { id: "conservative", name: "Conservative", protocol: "Endur.fi (xSTRK)", apy: "~4%", risk: "Low", description: "Default safe strategy. Stable STRK-denominated yield via Endur.fi." },
     { id: "moderate", name: "Moderate", protocol: "Endur + Vesu", apy: "~6-8%", risk: "Medium", description: "LST looping strategy for higher passive yield." },
 ];
 
 const PERIODS = [14, 30, 60, 90];
 
+const TOKENS = [
+    {
+        id: "STRK",
+        name: "Starknet Token",
+        symbol: "STRK",
+        address: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+        color: "text-violet-400",
+        bg: "bg-violet-500/10",
+        border: "border-violet-500/30",
+        selectedBorder: "border-violet-400",
+    },
+    {
+        id: "ETH",
+        name: "Ether",
+        symbol: "ETH",
+        address: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+        color: "text-blue-400",
+        bg: "bg-blue-500/10",
+        border: "border-blue-500/30",
+        selectedBorder: "border-blue-400",
+    },
+    {
+        id: "USDC",
+        name: "USD Coin",
+        symbol: "USDC",
+        address: "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+        color: "text-emerald-400",
+        bg: "bg-emerald-500/10",
+        border: "border-emerald-500/30",
+        selectedBorder: "border-emerald-400",
+    },
+];
+
 export default function SetupWizard() {
     const { address } = useAccount();
     const [step, setStep] = useState(1);
     const [depositAmount, setDepositAmount] = useState("");
+    const [selectedToken, setSelectedToken] = useState(TOKENS[0]);
     const [selectedTier, setSelectedTier] = useState(TIERS[0]);
     const [checkinPeriod, setCheckinPeriod] = useState(30);
     const [beneficiary, setBeneficiary] = useState("");
@@ -34,7 +68,6 @@ export default function SetupWizard() {
     const handleNext = () => {
         setStep((s) => Math.min(s + 1, 4));
         if (step === 3) {
-            // Save preferences to Honcho when reaching review step
             HonchoMemory.save("wizard_prefs", {
                 tier: selectedTier.id,
                 period: checkinPeriod,
@@ -46,15 +79,10 @@ export default function SetupWizard() {
 
     const calls = useMemo(() => {
         if (!depositAmount || isNaN(parseFloat(depositAmount))) return [];
-        // Mocking scale using 10^18 for the u256 value
         const amountWei = BigInt(Math.floor(parseFloat(depositAmount) * 1e18));
         const amountU256 = uint256.bnToUint256(amountWei);
-
         const periodSeconds = checkinPeriod * 86400;
-        const windowDurationSeconds = 7 * 86400; // 7 days checkin window
-
-        // STRK Testnet token address
-        const strkAddress = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+        const windowDurationSeconds = 7 * 86400;
 
         return [
             {
@@ -63,7 +91,7 @@ export default function SetupWizard() {
                 calldata: [beneficiary, periodSeconds.toString(), windowDurationSeconds.toString()]
             },
             {
-                contractAddress: strkAddress,
+                contractAddress: selectedToken.address,
                 entrypoint: "approve",
                 calldata: [GHOST_VAULT_ADDRESS, amountU256.low, amountU256.high]
             },
@@ -73,7 +101,7 @@ export default function SetupWizard() {
                 calldata: [amountU256.low, amountU256.high]
             }
         ];
-    }, [depositAmount, beneficiary, checkinPeriod]);
+    }, [depositAmount, beneficiary, checkinPeriod, selectedToken]);
 
     const { send, isPending, data } = useSendTransaction({ calls });
 
@@ -87,8 +115,30 @@ export default function SetupWizard() {
 
     const renderStep1 = () => (
         <div className="animate-fade-in-up">
-            <h2 className="text-2xl font-display font-semibold mb-2 text-[var(--text-primary)] tracking-tight">Step 1: Deposit Bitcoin</h2>
-            <p className="text-[var(--text-secondary)] text-sm mb-8">How much BTC do you want to secure in the vault?</p>
+            <h2 className="text-2xl font-display font-semibold mb-2 text-[var(--text-primary)] tracking-tight">Step 1: Choose Asset & Amount</h2>
+            <p className="text-[var(--text-secondary)] text-sm mb-6">Select the token you want to secure in the vault.</p>
+
+            {/* Token picker */}
+            <div className="grid grid-cols-3 gap-3 mb-6">
+                {TOKENS.map((token) => (
+                    <button
+                        key={token.id}
+                        onClick={() => setSelectedToken(token)}
+                        className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all duration-150 cursor-pointer
+                            ${selectedToken.id === token.id
+                                ? `${token.bg} ${token.selectedBorder} border`
+                                : "bg-[var(--bg-surface)] border-[var(--border-subtle)] hover:border-white/20"
+                            }`}
+                    >
+                        <span className={`text-2xl font-bold font-mono ${selectedToken.id === token.id ? token.color : "text-zinc-500"}`}>
+                            {token.symbol}
+                        </span>
+                        <span className="text-xs text-zinc-600">{token.name}</span>
+                    </button>
+                ))}
+            </div>
+
+            {/* Amount input */}
             <div className="relative">
                 <input
                     type="number"
@@ -97,7 +147,7 @@ export default function SetupWizard() {
                     onChange={(e) => setDepositAmount(e.target.value)}
                     className="w-full bg-[var(--bg-page)] border border-[var(--border-subtle)] focus:border-[var(--accent-primary)] text-[var(--text-primary)] rounded-[var(--radius-md)] py-4 px-6 focus:ring-4 focus:ring-[var(--accent-primary-muted)] focus:outline-none transition-all text-3xl font-mono shadow-inner"
                 />
-                <span className="absolute right-6 top-5 text-[var(--text-tertiary)] font-bold text-xl">BTC</span>
+                <span className={`absolute right-6 top-5 font-bold text-xl ${selectedToken.color}`}>{selectedToken.symbol}</span>
             </div>
         </div>
     );

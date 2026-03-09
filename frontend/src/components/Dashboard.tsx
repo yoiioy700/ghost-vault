@@ -118,22 +118,73 @@ export default function Dashboard() {
 
     if (!vaultActive) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-black text-zinc-100 font-sans px-4">
-                <div className="flex flex-col items-center justify-center p-12 rounded-2xl bg-[#0a0a0a] border border-white/[0.08] shadow-2xl max-w-lg w-full text-center relative overflow-hidden">
-                    {/* Subtle top highlight typical of Linear headers */}
-                    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
-
-                    <div className="w-16 h-16 rounded-full bg-blue-500/5 mb-6 flex items-center justify-center border border-blue-500/10">
-                        <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                    </div>
-                    <h2 className="text-2xl font-semibold text-white tracking-tight mb-3">No Active Vault</h2>
-                    <p className="text-sm text-zinc-500 mb-8 leading-relaxed max-w-sm mx-auto">You haven't secured any assets in Ghost Vault yet. Initialize a vault to protect your crypto with a dead man's switch.</p>
-                    <a href="/setup" className="w-full flex items-center justify-center py-3 text-sm font-medium bg-white hover:bg-zinc-200 text-black rounded-lg transition-colors duration-150">
-                        Setup Your Vault
+            <div className="min-h-screen w-full font-sans bg-black text-zinc-100 overflow-y-auto">
+                {/* Nav — same as active state */}
+                <nav className="h-16 border-b border-white/[0.06] bg-[#0a0a0a] flex items-center justify-between px-6 lg:px-12 sticky top-0 z-50">
+                    <a href="/" className="flex items-center gap-2 group">
+                        <div className="w-7 h-7 rounded-md bg-[#111] flex items-center justify-center border border-white/[0.08]">
+                            <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Ghost Vault</span>
                     </a>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#111] border border-white/[0.08] text-xs font-mono text-zinc-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            {address.slice(0, 6)}...{address.slice(-4)}
+                        </div>
+                        <button onClick={() => disconnect()} className="px-3 py-1.5 rounded-lg bg-transparent border border-white/[0.08] hover:border-white/[0.15] text-xs font-medium text-zinc-500 hover:text-zinc-300 transition-all">Disconnect</button>
+                    </div>
+                </nav>
+
+                <div className="max-w-[1000px] mx-auto w-full px-6 py-12">
+                    {/* Setup banner */}
+                    <div className="mb-8 p-5 rounded-xl bg-amber-500/[0.08] border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <p className="text-sm font-semibold text-amber-400 mb-0.5">No vault active</p>
+                            <p className="text-xs text-zinc-500">Set up a vault to start protecting your crypto with a dead man's switch.</p>
+                        </div>
+                        <a href="/dashboard/setup" className="shrink-0 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold rounded-lg transition-colors whitespace-nowrap">
+                            Create Vault →
+                        </a>
+                    </div>
+
+                    {/* Header */}
+                    <div className="flex justify-between items-end mb-8">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="w-2 h-2 rounded-full bg-zinc-600"></span>
+                                <span className="text-xs font-mono tracking-wider text-zinc-600 uppercase">No Vault</span>
+                            </div>
+                            <h1 className="text-4xl font-semibold tracking-tight text-white">Dashboard</h1>
+                            <p className="text-sm text-zinc-600 mt-1">Create a vault to get started</p>
+                        </div>
+                    </div>
+
+                    {/* Empty cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 opacity-40 pointer-events-none select-none">
+                        <div className="p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08]">
+                            <p className="text-xs font-medium uppercase tracking-wider text-zinc-600 mb-4">Total Principal</p>
+                            <p className="text-4xl font-semibold text-zinc-700">0.00</p>
+                            <p className="text-xs text-zinc-700 mt-2 font-mono">— STRK / ETH / USDC</p>
+                        </div>
+                        <div className="p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08]">
+                            <p className="text-xs font-medium uppercase tracking-wider text-zinc-600 mb-4">Earned Yield</p>
+                            <p className="text-4xl font-semibold text-zinc-700">0.0000</p>
+                            <p className="text-xs text-zinc-700 mt-2">~4.2% APY (Endur.fi)</p>
+                        </div>
+                        <div className="p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08]">
+                            <p className="text-xs font-medium uppercase tracking-wider text-zinc-600 mb-4">Next Check-in</p>
+                            <p className="text-4xl font-semibold text-zinc-700">—</p>
+                            <p className="text-xs text-zinc-700 mt-2">Timer starts after deposit</p>
+                        </div>
+                    </div>
+                    <div className="w-full p-8 rounded-xl bg-[#0a0a0a] border border-white/[0.08] opacity-40 pointer-events-none select-none">
+                        <p className="text-xs font-medium uppercase tracking-wider text-zinc-600 mb-2">Trigger Condition</p>
+                        <p className="text-sm text-zinc-700">Set beneficiary and inheritance period to activate the dead man's switch.</p>
+                    </div>
                 </div>
             </div>
-        )
+        );
     }
 
     return (
@@ -297,7 +348,7 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        {/* Minimalist Gauge instead of heavy glow circle */}
+                        {/* Minimalist Gauge */}
                         <div className="shrink-0 w-32 h-32 relative flex items-center justify-center bg-[#111] rounded-full border border-white/[0.05]">
                             <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
                                 <path
