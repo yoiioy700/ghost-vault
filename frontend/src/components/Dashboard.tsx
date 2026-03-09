@@ -1,6 +1,6 @@
 "use client";
 
-import { useAccount, useReadContract, useSendTransaction, useDisconnect } from "@starknet-react/core";
+import { useAccount, useReadContract, useSendTransaction, useDisconnect, useConnect } from "@starknet-react/core";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { useMemo, useState } from "react";
 import { GHOST_VAULT_ADDRESS, GHOST_VAULT_ABI } from "@/lib/contract";
@@ -71,11 +71,18 @@ export default function Dashboard() {
     const apy = 4.2;
     const accumulatedYield = (principal * 0.042 * (30 - daysRemaining) / 365).toFixed(4);
 
-    const { starknetkitConnectModal } = useStarknetkitConnectModal({ modalMode: "alwaysAsk" });
+    const { connect, connectors } = useConnect();
+    const { starknetkitConnectModal } = useStarknetkitConnectModal({
+        connectors: connectors as any,
+        modalMode: "alwaysAsk",
+    });
     const { disconnect } = useDisconnect();
 
     const handleConnect = async () => {
-        await starknetkitConnectModal();
+        const { connector } = await starknetkitConnectModal();
+        if (connector) {
+            connect({ connector: connector as any });
+        }
     };
 
     if (!address) {

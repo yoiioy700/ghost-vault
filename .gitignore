@@ -1,5 +1,26 @@
 node_modules/
 .env
+.env.local
+.env*.local
 .next/
 target/
 build/
+
+# Credentials & secrets — NEVER commit these
+account-sepolia.json
+*.json.key
+keystore/
+
+# Next.js runtime files
+frontend/nextjs.log
+frontend/nextjs.pid
+*.log
+*.pid
+
+# Lock file — use yarn only
+frontend/package-lock.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
