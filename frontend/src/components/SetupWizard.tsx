@@ -96,7 +96,7 @@ export default function SetupWizard() {
         return [approveTx, createVaultTx, depositTx];
     }, [depositAmount, beneficiary, checkinPeriod, vaultAlreadyExists]);
 
-    const { send, isPending, data } = useSendTransaction({ calls });
+    const { send, isPending, data, error } = useSendTransaction({ calls });
 
     const isValid = depositAmount && parseFloat(depositAmount) > 0 && beneficiary.startsWith("0x") && beneficiary.length > 10;
 
@@ -268,6 +268,12 @@ export default function SetupWizard() {
                     >
                         {isPending ? "Waiting for signature..." : data ? "✓ Vault Created!" : "Confirm & Create Vault"}
                     </button>
+
+                    {error && (
+                        <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-mono break-all">
+                            <strong>Transaction Error:</strong> {error.message || "Unknown error occurred"}
+                        </div>
+                    )}
 
                     {!isValid && (depositAmount || beneficiary) && (
                         <p className="text-center text-xs text-zinc-600">
