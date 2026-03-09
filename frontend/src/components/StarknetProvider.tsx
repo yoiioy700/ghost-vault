@@ -6,6 +6,9 @@ import {
     StarknetConfig,
     jsonRpcProvider,
     voyager,
+    useInjectedConnectors,
+    argent,
+    braavos
 } from "@starknet-react/core";
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
@@ -22,11 +25,16 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
     };
     const provider = jsonRpcProvider({ rpc });
 
-    const [connectors, setConnectors] = React.useState<any[] | null>(null);
+    const { connectors: injectedConnectors } = useInjectedConnectors({
+        recommended: [argent(), braavos()],
+        includeRecommended: "always",
+        order: "random"
+    });
+
+    const [mobileAndWebConnectors, setMobileAndWebConnectors] = React.useState<any[] | null>(null);
 
     React.useEffect(() => {
         const initConnectors = async () => {
-            const { InjectedConnector } = await import("starknetkit/injected");
             const { ArgentMobileConnector } = await import("starknetkit/argentMobile");
             const { WebWalletConnector } = await import("starknetkit/webwallet");
 
@@ -39,15 +47,18 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
                 inAppBrowserOptions: {},
             });
 
-            setConnectors([
-                new InjectedConnector({ options: { id: "braavos" } }),
-                new InjectedConnector({ options: { id: "argentX" } }),
+            setMobileAndWebConnectors([
                 argentMobile,
                 new WebWalletConnector({ url: "https://web.argent.xyz" }),
             ]);
         };
         initConnectors();
     }, []);
+
+    const connectors = React.useMemo(() => {
+        if (!mobileAndWebConnectors) return null;
+        return [...injectedConnectors, ...mobileAndWebConnectors];
+    }, [injectedConnectors, mobileAndWebConnectors]);
 
     // PENTING: jangan render StarknetConfig sampe connectors ready
     if (!connectors) {
