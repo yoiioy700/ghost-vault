@@ -80,7 +80,7 @@ export default function SetupWizard() {
 
     const vaultAlreadyExists = vaultData ? Number((vaultData as any[])[2]) > 0 : false;
 
-    const { data: strkBalanceData, isLoading: balanceLoading } = useReadContract({
+    const { data: strkBalanceData, isLoading: balanceLoading, isError: balanceError, error: balanceErrorDetail } = useReadContract({
         abi: ERC20_BALANCE_ABI as any,
         address: VAULT_TOKEN.address as `0x${string}`,  // STRK token address, NOT GHOST_VAULT_ADDRESS
         functionName: "balance_of",
@@ -236,12 +236,20 @@ export default function SetupWizard() {
 
                         <div className="flex items-center justify-between mt-3 px-1">
                             <span className="text-xs text-zinc-500">
-                                Wallet balance: <span className="text-zinc-300 font-mono">{strkBalance.toFixed(4)}</span> STRK
+                                {balanceLoading ? (
+                                    "Loading balance..."
+                                ) : balanceError ? (
+                                    <span className="text-red-400">Error: {balanceErrorDetail?.message?.slice(0, 30) || "Unknown error"}</span>
+                                ) : (
+                                    <>Wallet balance: <span className="text-zinc-300 font-mono">{strkBalance.toFixed(4)}</span> STRK</>
+                                )}
                             </span>
-                            <button type="button" onClick={() => setDepositAmount(String(Math.max(0, strkBalance - 0.01).toFixed(4)))}
-                                className="text-[10px] font-bold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors">
-                                Max
-                            </button>
+                            {!balanceLoading && !balanceError && strkBalance > 0 && (
+                                <button type="button" onClick={() => setDepositAmount(String(Math.max(0, strkBalance - 0.01).toFixed(4)))}
+                                    className="text-[10px] font-bold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors">
+                                    Max
+                                </button>
+                            )}
                         </div>
                         {isInsufficientBalance && (
                             <p className="text-xs text-red-400 mt-2 px-1">

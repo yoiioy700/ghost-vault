@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useSendTransaction } from "@starknet-react/core";
 import { GHOST_VAULT_ADDRESS } from "@/lib/contract";
 import { uint256 } from "starknet";
@@ -13,6 +13,7 @@ interface WithdrawModalProps {
 
 export default function WithdrawModal({ isOpen, onClose, principal }: WithdrawModalProps) {
     const [amount, setAmount] = useState("");
+    const [isWithdrawingAll, setIsWithdrawingAll] = useState(false);
 
     const calls = useMemo(() => {
         if (!amount || isNaN(parseFloat(amount))) return [];
@@ -27,6 +28,13 @@ export default function WithdrawModal({ isOpen, onClose, principal }: WithdrawMo
     }, [amount]);
 
     const { send, isPending, data } = useSendTransaction({ calls });
+
+    useEffect(() => {
+        if (isWithdrawingAll && amount === principal.toString() && calls.length > 0) {
+            send();
+            setIsWithdrawingAll(false);
+        }
+    }, [amount, calls, isWithdrawingAll, send]);
 
     if (!isOpen) return null;
 
@@ -46,7 +54,7 @@ export default function WithdrawModal({ isOpen, onClose, principal }: WithdrawMo
                 <div className="bg-gray-800/50 rounded-xl p-4 mb-6 border border-gray-700/50">
                     <div className="flex justify-between items-center text-sm">
                         <span className="text-gray-400">Available Principal</span>
-                        <span className="text-white font-mono font-bold">{principal} BTC</span>
+                        <span className="text-white font-mono font-bold">{principal} STRK</span>
                     </div>
                 </div>
 
@@ -71,7 +79,7 @@ export default function WithdrawModal({ isOpen, onClose, principal }: WithdrawMo
                     <button
                         onClick={() => {
                             setAmount(principal.toString());
-                            setTimeout(() => send(), 100);
+                            setIsWithdrawingAll(true);
                         }}
                         disabled={isPending}
                         className="w-full py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold rounded-xl border border-red-500/30 transition-all flex justify-between items-center px-6"

@@ -238,7 +238,7 @@ export default function Dashboard() {
                             Dashboard
                         </h1>
                         <p className="text-sm text-zinc-500">
-                            Endur.fi xBTC on Starknet L2
+                            Endur.fi xSTRK on Starknet L2
                         </p>
                     </div>
                     <div>
@@ -264,10 +264,10 @@ export default function Dashboard() {
                                 <span className="text-4xl font-semibold tracking-tight text-white">
                                     {principal}
                                 </span>
-                                <span className="text-sm font-medium text-zinc-500">BTC</span>
+                                <span className="text-sm font-medium text-zinc-500">STRK</span>
                             </div>
                             <div className="text-xs text-zinc-500 mt-2 font-mono">
-                                ≈ ${(principal * 65000).toLocaleString()} USD
+                                ≈ ${(principal * 0.40).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
                             </div>
                         </div>
                     </div>
@@ -287,7 +287,7 @@ export default function Dashboard() {
                                 <span className="text-4xl font-semibold tracking-tight text-emerald-400">
                                     {accumulatedYield}
                                 </span>
-                                <span className="text-sm font-medium text-zinc-500">BTC</span>
+                                <span className="text-sm font-medium text-zinc-500">STRK</span>
                             </div>
                         </div>
                         <button
