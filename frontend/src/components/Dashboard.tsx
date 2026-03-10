@@ -46,14 +46,15 @@ export default function Dashboard() {
 
     const deadlineTimestamp = deadlineU64 ? Number(deadlineU64) : 0;
     const periodFromContract = periodU64 ? Number(periodU64) : 0;
-    const period = periodFromContract > 0 ? periodFromContract : (memory?.period ? Number(memory.period) * 86400 : 30 * 86400);
+    const period = periodFromContract > 0 ? periodFromContract : (memory?.period ? Number(memory.period) * 86400 : 30 * 86400); // default 30 days
     const now = Math.floor(Date.now() / 1000);
     const timeRemainingSeconds = deadlineTimestamp > now ? deadlineTimestamp - now : 0;
     const daysRemaining = Math.ceil(timeRemainingSeconds / 86400);
 
+    // Calculate percentage for the dynamic graph ring (100 = full period, 0 = dead)
     const percentageRemaining = period > 0 ? Math.min(Math.max((timeRemainingSeconds / period) * 100, 0), 100) : 0;
-    const dashArrayValue = Math.max(percentageRemaining, 1);
-    const isCritical = percentageRemaining < 15;
+    const dashArrayValue = Math.max(percentageRemaining, 1); // SVG stroke dash array
+    const isCritical = percentageRemaining < 15; // < 15% remaining (e.g. < 4 days left out of 30)
 
     const calls = useMemo(() => {
         if (!address) return [];
@@ -100,6 +101,7 @@ export default function Dashboard() {
     if (!address) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-black text-zinc-100 font-sans px-4">
+                {/* Subtle top nav */}
                 <div className="fixed top-0 inset-x-0 h-16 border-b border-white/[0.06] bg-black/80 backdrop-blur-md flex items-center px-6">
                     <a href="/" className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-md bg-[#111] flex items-center justify-center border border-white/[0.08]">
@@ -130,6 +132,7 @@ export default function Dashboard() {
     if (!vaultActive) {
         return (
             <div className="min-h-screen w-full font-sans bg-black text-zinc-100 overflow-y-auto">
+                {/* Nav — same as active state */}
                 <nav className="h-16 border-b border-white/[0.06] bg-[#0a0a0a] flex items-center justify-between px-6 lg:px-12 sticky top-0 z-50">
                     <a href="/" className="flex items-center gap-2 group">
                         <div className="w-7 h-7 rounded-md bg-[#111] flex items-center justify-center border border-white/[0.08]">
@@ -147,16 +150,18 @@ export default function Dashboard() {
                 </nav>
 
                 <div className="max-w-[1000px] mx-auto w-full px-6 py-12">
+                    {/* Setup banner */}
                     <div className="mb-8 p-5 rounded-xl bg-amber-500/[0.08] border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                             <p className="text-sm font-semibold text-amber-400 mb-0.5">No vault active</p>
                             <p className="text-xs text-zinc-500">Set up a vault to start protecting your crypto with a dead man's switch.</p>
                         </div>
                         <a href="/dashboard/setup" className="shrink-0 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold rounded-lg transition-colors whitespace-nowrap">
-                            Create Vault ->
+                            Create Vault {'\u2192'}
                         </a>
                     </div>
 
+                    {/* Header */}
                     <div className="flex justify-between items-end mb-8">
                         <div>
                             <div className="flex items-center gap-2 mb-1">
@@ -168,11 +173,12 @@ export default function Dashboard() {
                         </div>
                     </div>
 
+                    {/* Empty cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 opacity-40 pointer-events-none select-none">
                         <div className="p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08]">
                             <p className="text-xs font-medium uppercase tracking-wider text-zinc-600 mb-4">Total Principal</p>
                             <p className="text-4xl font-semibold text-zinc-700">0.00</p>
-                            <p className="text-xs text-zinc-700 mt-2 font-mono">-- STRK / ETH / USDC</p>
+                            <p className="text-xs text-zinc-700 mt-2 font-mono">— STRK / ETH / USDC</p>
                         </div>
                         <div className="p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08]">
                             <p className="text-xs font-medium uppercase tracking-wider text-zinc-600 mb-4">Earned Yield</p>
@@ -181,7 +187,7 @@ export default function Dashboard() {
                         </div>
                         <div className="p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08]">
                             <p className="text-xs font-medium uppercase tracking-wider text-zinc-600 mb-4">Next Check-in</p>
-                            <p className="text-4xl font-semibold text-zinc-700">--</p>
+                            <p className="text-4xl font-semibold text-zinc-700">—</p>
                             <p className="text-xs text-zinc-700 mt-2">Timer starts after deposit</p>
                         </div>
                     </div>
@@ -196,6 +202,7 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen w-full font-sans bg-black text-zinc-100 overflow-y-auto selection:bg-blue-500/30">
+            {/* Top Nav */}
             <nav className="h-16 border-b border-white/[0.06] bg-[#0a0a0a] flex items-center justify-between px-6 lg:px-12 sticky top-0 z-50">
                 <a href="/" className="flex items-center gap-2 group">
                     <div className="w-7 h-7 rounded-md bg-[#111] flex items-center justify-center border border-white/[0.08] transition-colors group-hover:border-white/[0.14]">
@@ -218,6 +225,7 @@ export default function Dashboard() {
             </nav>
 
             <div className="max-w-[1000px] mx-auto w-full px-6 py-12 relative z-10">
+                {/* Header Subdued Linear Style */}
                 <div className="flex justify-between items-end mb-12">
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2 mb-1">
@@ -230,7 +238,7 @@ export default function Dashboard() {
                             Dashboard
                         </h1>
                         <p className="text-sm text-zinc-500">
-                            Endur.fi xSTRK on Starknet L2
+                            Endur.fi xBTC on Starknet L2
                         </p>
                     </div>
                     <div>
@@ -242,7 +250,9 @@ export default function Dashboard() {
                     </div>
                 </div>
 
+                {/* Grid layout */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 w-full">
+
                     {/* Principal Card */}
                     <div className="flex flex-col justify-between p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08] shadow-sm relative overflow-hidden group">
                         <div className="absolute top-0 inset-x-0 h-px bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors"></div>
@@ -254,10 +264,10 @@ export default function Dashboard() {
                                 <span className="text-4xl font-semibold tracking-tight text-white">
                                     {principal}
                                 </span>
-                                <span className="text-sm font-medium text-zinc-500">STRK</span>
+                                <span className="text-sm font-medium text-zinc-500">BTC</span>
                             </div>
                             <div className="text-xs text-zinc-500 mt-2 font-mono">
-                                ~ ${(principal * 0.45).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                                ≈ ${(principal * 65000).toLocaleString()} USD
                             </div>
                         </div>
                     </div>
@@ -269,6 +279,7 @@ export default function Dashboard() {
                             <div className="flex items-center justify-between text-zinc-500 mb-2">
                                 <span className="text-xs font-medium uppercase tracking-wider">Earned Yield</span>
                                 <span className="text-xs font-medium text-emerald-500/80 bg-emerald-500/10 px-2 py-0.5 rounded flex items-center gap-1">
+                                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 2.5V9.5M6 2.5L3.5 5M6 2.5L8.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                                     {apy}%
                                 </span>
                             </div>
@@ -276,7 +287,7 @@ export default function Dashboard() {
                                 <span className="text-4xl font-semibold tracking-tight text-emerald-400">
                                     {accumulatedYield}
                                 </span>
-                                <span className="text-sm font-medium text-zinc-500">STRK</span>
+                                <span className="text-sm font-medium text-zinc-500">BTC</span>
                             </div>
                         </div>
                         <button
@@ -323,11 +334,13 @@ export default function Dashboard() {
                             {isPending ? "Confirming..." : "Check In Now"}
                         </button>
                     </div>
+
                 </div>
 
                 {/* Dead Man's Switch Visualization */}
                 <div className="mt-4 w-full p-8 rounded-xl bg-[#0a0a0a] border border-white/[0.08] shadow-sm relative overflow-hidden">
                     <div className="absolute top-0 inset-x-0 h-px bg-white/[0.02]"></div>
+
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
                         <div className="flex-1 flex flex-col gap-6">
                             <div>
@@ -336,6 +349,7 @@ export default function Dashboard() {
                                     If the check-in timer reaches zero, the dead man's switch activates. 100% of your vault balance and yield will be trustlessly transferred to your designated beneficiary address below.
                                 </p>
                             </div>
+
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-between text-xs font-medium">
                                     <span className="text-zinc-500 uppercase tracking-widest">Primary Beneficiary</span>
@@ -347,11 +361,25 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        {/* Gauge */}
+                        {/* Minimalist Gauge */}
                         <div className="shrink-0 w-32 h-32 relative flex items-center justify-center bg-[#111] rounded-full border border-white/[0.05]">
                             <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
-                                <path className="text-white/[0.03]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                                <path className={`transition-all duration-1000 ease-out ${isCritical ? 'text-red-500' : 'text-blue-500'}`} strokeDasharray={`${dashArrayValue}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                <path
+                                    className="text-white/[0.03]"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                />
+                                <path
+                                    className={`transition-all duration-1000 ease-out ${isCritical ? 'text-red-500' : 'text-blue-500'}`}
+                                    strokeDasharray={`${dashArrayValue}, 100`}
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                />
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                                 <span className={`text-2xl font-semibold tracking-tighter ${isCritical ? 'text-red-400' : 'text-zinc-200'}`}>
