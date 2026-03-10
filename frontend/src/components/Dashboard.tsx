@@ -58,19 +58,19 @@ export default function Dashboard() {
 
     const calls = useMemo(() => {
         if (!address) return [];
-        return [{
-            contractAddress: GHOST_VAULT_ADDRESS,
-            entrypoint: "checkin",
-            calldata: []
+        return [{\
+            contractAddress: GHOST_VAULT_ADDRESS,\
+            entrypoint: "checkin",\
+            calldata: []\
         }];
     }, [address]);
 
     const claimCalls = useMemo(() => {
         if (!address) return [];
-        return [{
-            contractAddress: GHOST_VAULT_ADDRESS,
-            entrypoint: "claim_yield",
-            calldata: []
+        return [{\
+            contractAddress: GHOST_VAULT_ADDRESS,\
+            entrypoint: "claim_yield",\
+            calldata: []\
         }];
     }, [address]);
 
@@ -267,7 +267,7 @@ export default function Dashboard() {
                                 <span className="text-sm font-medium text-zinc-500">STRK</span>
                             </div>
                             <div className="text-xs text-zinc-500 mt-2 font-mono">
-                                ≈ ${(principal * 0.45).toFixed(2)} USD
+                                ≈ ${(principal * 0.45).toLocaleString()} USD
                             </div>
                         </div>
                     </div>
