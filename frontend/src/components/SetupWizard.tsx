@@ -383,7 +383,7 @@ export default function SetupWizard() {
                         disabled={isPending || !isValid || !calls.length || isInsufficientBalance || depositNum <= 0}
                         className={`w-full py-4 bg-white hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-600 text-black font-semibold text-sm rounded-xl transition-all duration-150 ${isInsufficientBalance ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        {isPending ? "Waiting for signature..." : data ? "\u2713 Vault Created!" : "Confirm & Create Vault"}
+                        {isPending ? "Waiting for signature..." : data ? "✓ Vault Created!" : "Confirm & Create Vault"}
                     </button>
 
                     {error && (
