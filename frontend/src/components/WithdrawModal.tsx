@@ -70,13 +70,7 @@ export default function WithdrawModal({ isOpen, onClose, principal }: WithdrawMo
 
                     <button
                         onClick={() => {
-                            const amountWei = BigInt(Math.floor(principal * 1e18));
-                            const amountU256 = uint256.bnToUint256(amountWei);
-                            send([{
-                                contractAddress: GHOST_VAULT_ADDRESS,
-                                entrypoint: "withdraw",
-                                calldata: [amountU256.low, amountU256.high]
-                            }] as any);
+                            setAmount(principal.toString());
                         }}
                         disabled={isPending}
                         className="w-full py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold rounded-xl border border-red-500/30 transition-all flex justify-between items-center px-6"
