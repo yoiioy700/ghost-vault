@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useSendTransaction } from "@starknet-react/core";
 import { GHOST_VAULT_ADDRESS } from "@/lib/contract";
 import { uint256 } from "starknet";
@@ -13,7 +13,6 @@ interface WithdrawModalProps {
 
 export default function WithdrawModal({ isOpen, onClose, principal }: WithdrawModalProps) {
     const [amount, setAmount] = useState("");
-    const [isWithdrawingAll, setIsWithdrawingAll] = useState(false);
 
     const calls = useMemo(() => {
         if (!amount || isNaN(parseFloat(amount))) return [];
@@ -28,13 +27,6 @@ export default function WithdrawModal({ isOpen, onClose, principal }: WithdrawMo
     }, [amount]);
 
     const { send, isPending, data } = useSendTransaction({ calls });
-
-    useEffect(() => {
-        if (isWithdrawingAll && amount === principal.toString() && calls.length > 0) {
-            send();
-            setIsWithdrawingAll(false);
-        }
-    }, [amount, calls, isWithdrawingAll, send]);
 
     if (!isOpen) return null;
 
@@ -78,8 +70,15 @@ export default function WithdrawModal({ isOpen, onClose, principal }: WithdrawMo
 
                     <button
                         onClick={() => {
-                            setAmount(principal.toString());
-                            setIsWithdrawingAll(true);
+                            const fullAmount = principal.toString();
+                            setAmount(fullAmount);
+                            const amountWei = BigInt(Math.floor(parseFloat(fullAmount) * 1e18));
+                            const amountU256 = uint256.bnToUint256(amountWei);
+                            send([{
+                                contractAddress: GHOST_VAULT_ADDRESS,
+                                entrypoint: "withdraw",
+                                calldata: [amountU256.low, amountU256.high]
+                            }]);
                         }}
                         disabled={isPending}
                         className="w-full py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold rounded-xl border border-red-500/30 transition-all flex justify-between items-center px-6"
