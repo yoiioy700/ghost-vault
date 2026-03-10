@@ -17,16 +17,6 @@ const VAULT_TOKEN = {
 
 const COMING_SOON_TOKENS = ["ETH", "xBTC", "USDC"];
 
-const ERC20_BALANCE_ABI = [
-    {
-        type: "function",
-        name: "balance_of",
-        inputs: [{ name: "account", type: "core::starknet::contract_address::ContractAddress" }],
-        outputs: [{ type: "core::integer::u256" }],
-        state_mutability: "view",
-    },
-] as const;
-
 const PERIODS = [
     { days: 14, label: "2 weeks" },
     { days: 30, label: "1 month" },
@@ -80,22 +70,33 @@ export default function SetupWizard() {
 
     const vaultAlreadyExists = vaultData ? Number((vaultData as any[])[2]) > 0 : false;
 
-    const { data: strkBalanceData, isLoading: balanceLoading, isError: balanceError, error: balanceErrorDetail } = useReadContract({
-        abi: ERC20_BALANCE_ABI as any,
-        address: VAULT_TOKEN.address as `0x${string}`,  // STRK token address, NOT GHOST_VAULT_ADDRESS
+    const { data: strkBalanceData, isLoading: balanceLoading } = useReadContract({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        abi: [
+            {
+                name: "balance_of",
+                type: "function",
+                inputs: [{ name: "account", type: "core::starknet::contract_address::ContractAddress" }],
+                outputs: [{ type: "core::integer::u256" }],
+                state_mutability: "view",
+            },
+        ] as const,
+        address: VAULT_TOKEN.address as `0x${string}`,
         functionName: "balance_of",
         args: address ? [address as `0x${string}`] : undefined,
         enabled: !!address,
         watch: true,
     });
 
-    const strkBalance = useMemo(() => {
-        if (strkBalanceData === undefined) return 0;
-        const val = BigInt(strkBalanceData.toString());
-        return Number(val) / 1e18;
-    }, [strkBalanceData]);
+    let strkBalance = BigInt(0);
+    if (strkBalanceData !== undefined) {
+        strkBalance = BigInt(strkBalanceData.toString());
+    }
 
-    const isInsufficientBalance = depositAmount ? parseFloat(depositAmount) > strkBalance : false;
+    const strkBalanceNum = strkBalanceData !== undefined ? Number(strkBalance) / 1e18 : null;
+    const depositNum = Number(depositAmount) || 0;
+    const isInsufficientBalance = strkBalanceNum !== null && depositNum > strkBalanceNum;
+    const isTightBalance = strkBalanceNum !== null && !isInsufficientBalance && depositNum > 0 && (strkBalanceNum - depositNum) < 0.01;
 
     const amountWei = depositAmount && !isNaN(parseFloat(depositAmount))
         ? BigInt(Math.floor(parseFloat(depositAmount) * 1e18))
@@ -142,7 +143,8 @@ export default function SetupWizard() {
 
     const { send, isPending, data, error } = useSendTransaction({ calls });
 
-    const isValid = depositAmount && parseFloat(depositAmount) > 0 && beneficiary.startsWith("0x") && beneficiary.length > 10 && !isInsufficientBalance;
+    const hasEnoughBalance = amountWei <= strkBalance;
+    const isValid = depositAmount && parseFloat(depositAmount) > 0 && beneficiary.startsWith("0x") && beneficiary.length > 10 && hasEnoughBalance && !isInsufficientBalance;
 
     const handleSubmit = () => {
         HonchoMemory.save("wizard_prefs", { period: checkinPeriod, beneficiary });
@@ -188,7 +190,7 @@ export default function SetupWizard() {
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
                     Back to Dashboard
                 </a>
-                <span className="text-sm font-medium text-zinc-300">Ghost Vault {strkBalance > 0 ? `(Bal: ${strkBalance.toFixed(2)} STRK)` : ""}</span>
+                <span className="text-sm font-medium text-zinc-300">Ghost Vault {strkBalance > BigInt(0) ? `(Bal: ${(Number(strkBalance) / 1e18).toFixed(2)} STRK)` : ""}</span>
             </nav>
 
             <div className="max-w-2xl mx-auto px-6 py-12">
@@ -202,7 +204,7 @@ export default function SetupWizard() {
 
                     {/* Section 1: Asset & Amount */}
                     <section className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/[0.08]">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-4">1 · Asset & Amount</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-4">1 - Asset & Amount</label>
 
                         {/* Token chips */}
                         <div className="flex items-center gap-2 mb-5 flex-wrap">
@@ -234,33 +236,53 @@ export default function SetupWizard() {
                             </span>
                         </div>
 
-                        <div className="flex items-center justify-between mt-3 px-1">
-                            <span className="text-xs text-zinc-500">
-                                {balanceLoading ? (
-                                    "Loading balance..."
-                                ) : balanceError ? (
-                                    <span className="text-red-400">Error: {balanceErrorDetail?.message?.slice(0, 30) || "Unknown error"}</span>
-                                ) : (
-                                    <>Wallet balance: <span className="text-zinc-300 font-mono">{strkBalance.toFixed(4)}</span> STRK</>
-                                )}
-                            </span>
-                            {!balanceLoading && !balanceError && strkBalance > 0 && (
-                                <button type="button" onClick={() => setDepositAmount(String(Math.max(0, strkBalance - 0.01).toFixed(4)))}
-                                    className="text-[10px] font-bold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors">
+                        {/* Balance display */}
+                        <div className="flex items-center justify-between mt-3 text-xs">
+                            {balanceLoading ? (
+                                <span className="text-zinc-500">Loading balance...</span>
+                            ) : strkBalanceNum !== null ? (
+                                <span className="text-zinc-400">
+                                    Wallet balance: <span className="text-white font-mono">{strkBalanceNum.toFixed(4)}</span> STRK
+                                </span>
+                            ) : (
+                                <span className="text-zinc-500">Could not read balance</span>
+                            )}
+                            {strkBalanceNum !== null && strkBalanceNum > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const maxDeposit = Math.max(0, strkBalanceNum - 0.005);
+                                        setDepositAmount(maxDeposit.toFixed(4));
+                                    }}
+                                    className="text-violet-400 hover:text-violet-300 font-medium transition-colors cursor-pointer"
+                                >
                                     Max
                                 </button>
                             )}
                         </div>
+
+                        {/* Insufficient balance warning */}
                         {isInsufficientBalance && (
-                            <p className="text-xs text-red-400 mt-2 px-1">
-                                Insufficient STRK balance. You have {strkBalance.toFixed(4)} but trying to deposit {depositAmount}.
-                            </p>
+                            <div className="mt-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                                <p className="text-red-400 text-xs">
+                                    Insufficient STRK balance. You have {strkBalanceNum?.toFixed(4)} but trying to deposit {depositNum.toFixed(4)}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Tight balance warning */}
+                        {isTightBalance && (
+                            <div className="mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                                <p className="text-amber-400 text-xs">
+                                    Balance is tight -- you might not have enough left for gas fees (~0.005 STRK)
+                                </p>
+                            </div>
                         )}
                     </section>
 
                     {/* Section 2: Yield Strategy */}
                     <section className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/[0.08]">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-4">2 · Yield Strategy</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-4">2 - Yield Strategy</label>
                         <div className="grid grid-cols-2 gap-3">
                             {STRATEGIES.map((s) => (
                                 <button
@@ -284,8 +306,8 @@ export default function SetupWizard() {
 
                     {/* Section 3: Check-in Period */}
                     <section className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/[0.08]">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-1">3 · Check-in Period</label>
-                        <p className="text-xs text-zinc-600 mb-4">If you don&apos;t check in within this period, inheritance triggers automatically.</p>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-1">3 - Check-in Period</label>
+                        <p className="text-xs text-zinc-600 mb-4">If you don't check in within this period, inheritance triggers automatically.</p>
                         <div className="grid grid-cols-4 gap-2">
                             {PERIODS.map(({ days, label }) => (
                                 <button
@@ -306,7 +328,7 @@ export default function SetupWizard() {
 
                     {/* Section 4: Beneficiary */}
                     <section className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/[0.08]">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-1">4 · Beneficiary Address</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-1">4 - Beneficiary Address</label>
                         <p className="text-xs text-zinc-600 mb-4">100% of principal + yield goes here if the timer expires.</p>
                         <input
                             type="text"
@@ -324,10 +346,10 @@ export default function SetupWizard() {
                     <section className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/[0.05]">
                         <div className="flex items-center justify-between mb-3">
                             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-600">
-                                Signing 1 Multicall · {vaultAlreadyExists ? "2" : "3"} ops
+                                Signing 1 Multicall - {vaultAlreadyExists ? "2" : "3"} ops
                             </p>
                             {vaultAlreadyExists && (
-                                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Vault exists — skip create</span>
+                                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Vault exists -- skip create</span>
                             )}
                         </div>
                         <div className="flex flex-col gap-1.5">
@@ -338,7 +360,7 @@ export default function SetupWizard() {
                             {!vaultAlreadyExists && (
                                 <div className="flex items-center gap-3 text-sm">
                                     <span className="text-zinc-700 font-mono text-xs w-5">02</span>
-                                    <span className="font-medium text-zinc-400">Create vault · {checkinPeriod}d period</span>
+                                    <span className="font-medium text-zinc-400">Create vault - {checkinPeriod}d period</span>
                                 </div>
                             )}
                             <div className="flex items-center gap-3 text-sm">
@@ -351,10 +373,10 @@ export default function SetupWizard() {
                     {/* Submit */}
                     <button
                         onClick={handleSubmit}
-                        disabled={isPending || !isValid || !calls.length || isInsufficientBalance || !depositAmount || parseFloat(depositAmount) <= 0}
+                        disabled={isPending || !isValid || !calls.length || isInsufficientBalance || depositNum <= 0}
                         className={`w-full py-4 bg-white hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-600 text-black font-semibold text-sm rounded-xl transition-all duration-150 ${isInsufficientBalance ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        {isPending ? "Waiting for signature..." : data ? "✓ Vault Created!" : "Confirm & Create Vault"}
+                        {isPending ? "Waiting for signature..." : data ? "Vault Created!" : "Confirm & Create Vault"}
                     </button>
 
                     {error && (
@@ -365,8 +387,8 @@ export default function SetupWizard() {
 
                     {!isValid && (depositAmount || beneficiary) && (
                         <p className="text-center text-xs text-red-400 font-mono">
-                            {!depositAmount || parseFloat(depositAmount) <= 0 ? "Enter a deposit amount · " : ""}
-                            {!beneficiary.startsWith("0x") || beneficiary.length <= 10 ? "Enter a valid beneficiary address · " : ""}
+                            {!depositAmount || parseFloat(depositAmount) <= 0 ? "Enter a deposit amount - " : ""}
+                            {!beneficiary.startsWith("0x") || beneficiary.length <= 10 ? "Enter a valid beneficiary address - " : ""}
                         </p>
                     )}
                 </div>
