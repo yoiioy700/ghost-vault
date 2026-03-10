@@ -211,7 +211,7 @@ export default function SetupWizard() {
 
                     {/* Section 1: Asset & Amount */}
                     <section className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/[0.08]">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-4">1 \u00b7 Asset & Amount</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-4">1 · Asset & Amount</label>
 
                         {/* Token chips */}
                         <div className="flex items-center gap-2 mb-5 flex-wrap">
@@ -281,7 +281,7 @@ export default function SetupWizard() {
                         {isTightBalance && (
                             <div className="mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
                                 <p className="text-amber-400 text-xs">
-                                    Balance is tight \u2014 you might not have enough left for gas fees (~0.005 STRK)
+                                    Balance is tight — you might not have enough left for gas fees (~0.005 STRK)
                                 </p>
                             </div>
                         )}
@@ -289,7 +289,7 @@ export default function SetupWizard() {
 
                     {/* Section 2: Yield Strategy */}
                     <section className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/[0.08]">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-4">2 \u00b7 Yield Strategy</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-4">2 · Yield Strategy</label>
                         <div className="grid grid-cols-2 gap-3">
                             {STRATEGIES.map((s) => (
                                 <button
@@ -313,7 +313,7 @@ export default function SetupWizard() {
 
                     {/* Section 3: Check-in Period */}
                     <section className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/[0.08]">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-1">3 \u00b7 Check-in Period</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-1">3 · Check-in Period</label>
                         <p className="text-xs text-zinc-600 mb-4">If you don&apos;t check in within this period, inheritance triggers automatically.</p>
                         <div className="grid grid-cols-4 gap-2">
                             {PERIODS.map(({ days, label }) => (
@@ -335,7 +335,7 @@ export default function SetupWizard() {
 
                     {/* Section 4: Beneficiary */}
                     <section className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/[0.08]">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-1">4 \u00b7 Beneficiary Address</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block mb-1">4 · Beneficiary Address</label>
                         <p className="text-xs text-zinc-600 mb-4">100% of principal + yield goes here if the timer expires.</p>
                         <input
                             type="text"
@@ -353,10 +353,10 @@ export default function SetupWizard() {
                     <section className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/[0.05]">
                         <div className="flex items-center justify-between mb-3">
                             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-600">
-                                Signing 1 Multicall \u00b7 {vaultAlreadyExists ? "2" : "3"} ops
+                                Signing 1 Multicall · {vaultAlreadyExists ? "2" : "3"} ops
                             </p>
                             {vaultAlreadyExists && (
-                                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Vault exists \u2014 skip create</span>
+                                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Vault exists — skip create</span>
                             )}
                         </div>
                         <div className="flex flex-col gap-1.5">
@@ -367,7 +367,7 @@ export default function SetupWizard() {
                             {!vaultAlreadyExists && (
                                 <div className="flex items-center gap-3 text-sm">
                                     <span className="text-zinc-700 font-mono text-xs w-5">02</span>
-                                    <span className="font-medium text-zinc-400">Create vault \u00b7 {checkinPeriod}d period</span>
+                                    <span className="font-medium text-zinc-400">Create vault · {checkinPeriod}d period</span>
                                 </div>
                             )}
                             <div className="flex items-center gap-3 text-sm">
