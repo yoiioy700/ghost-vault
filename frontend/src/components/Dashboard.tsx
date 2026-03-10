@@ -58,19 +58,19 @@ export default function Dashboard() {
 
     const calls = useMemo(() => {
         if (!address) return [];
-        return [{\
-            contractAddress: GHOST_VAULT_ADDRESS,\
-            entrypoint: "checkin",\
-            calldata: []\
+        return [{
+            contractAddress: GHOST_VAULT_ADDRESS,
+            entrypoint: "checkin",
+            calldata: []
         }];
     }, [address]);
 
     const claimCalls = useMemo(() => {
         if (!address) return [];
-        return [{\
-            contractAddress: GHOST_VAULT_ADDRESS,\
-            entrypoint: "claim_yield",\
-            calldata: []\
+        return [{
+            contractAddress: GHOST_VAULT_ADDRESS,
+            entrypoint: "claim_yield",
+            calldata: []
         }];
     }, [address]);
 
@@ -132,7 +132,7 @@ export default function Dashboard() {
     if (!vaultActive) {
         return (
             <div className="min-h-screen w-full font-sans bg-black text-zinc-100 overflow-y-auto">
-                {/* Nav — same as active state */}
+                {/* Nav -- same as active state */}
                 <nav className="h-16 border-b border-white/[0.06] bg-[#0a0a0a] flex items-center justify-between px-6 lg:px-12 sticky top-0 z-50">
                     <a href="/" className="flex items-center gap-2 group">
                         <div className="w-7 h-7 rounded-md bg-[#111] flex items-center justify-center border border-white/[0.08]">
@@ -157,7 +157,7 @@ export default function Dashboard() {
                             <p className="text-xs text-zinc-500">Set up a vault to start protecting your crypto with a dead man's switch.</p>
                         </div>
                         <a href="/dashboard/setup" className="shrink-0 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold rounded-lg transition-colors whitespace-nowrap">
-                            Create Vault {'\u2192'}
+                            Create Vault \u2192
                         </a>
                     </div>
 
@@ -178,7 +178,7 @@ export default function Dashboard() {
                         <div className="p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08]">
                             <p className="text-xs font-medium uppercase tracking-wider text-zinc-600 mb-4">Total Principal</p>
                             <p className="text-4xl font-semibold text-zinc-700">0.00</p>
-                            <p className="text-xs text-zinc-700 mt-2 font-mono">— STRK / ETH / USDC</p>
+                            <p className="text-xs text-zinc-700 mt-2 font-mono">-- STRK / ETH / USDC</p>
                         </div>
                         <div className="p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08]">
                             <p className="text-xs font-medium uppercase tracking-wider text-zinc-600 mb-4">Earned Yield</p>
@@ -187,7 +187,7 @@ export default function Dashboard() {
                         </div>
                         <div className="p-6 rounded-xl bg-[#0a0a0a] border border-white/[0.08]">
                             <p className="text-xs font-medium uppercase tracking-wider text-zinc-600 mb-4">Next Check-in</p>
-                            <p className="text-4xl font-semibold text-zinc-700">—</p>
+                            <p className="text-4xl font-semibold text-zinc-700">\u2014</p>
                             <p className="text-xs text-zinc-700 mt-2">Timer starts after deposit</p>
                         </div>
                     </div>
@@ -267,7 +267,7 @@ export default function Dashboard() {
                                 <span className="text-sm font-medium text-zinc-500">STRK</span>
                             </div>
                             <div className="text-xs text-zinc-500 mt-2 font-mono">
-                                ≈ ${(principal * 0.45).toLocaleString()} USD
+                                \u2248 ${(principal * 0.45).toFixed(2)} USD
                             </div>
                         </div>
                     </div>
