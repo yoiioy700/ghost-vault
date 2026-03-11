@@ -267,12 +267,12 @@ export default function SetupWizard() {
             </p>
           </div>
           <div className="flex flex-col gap-3">
-            <a href="/dashboard" className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-semibold text-sm rounded-xl transition-all duration-200 cursor-pointer shadow-[0_0_20px_rgba(139,92,246,0.3)]">
+            <Link href="/dashboard" className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-semibold text-sm rounded-xl transition-all duration-200 cursor-pointer shadow-[0_0_20px_rgba(139,92,246,0.3)]">
               Go to Dashboard
-            </a>
-            <a href="/dashboard" className="w-full flex items-center justify-center gap-2 px-5 py-3 text-zinc-500 hover:text-zinc-300 font-medium text-sm rounded-xl transition-all duration-200 cursor-pointer border border-white/[0.06] hover:border-white/[0.12]">
+            </Link>
+            <Link href="/dashboard" className="w-full flex items-center justify-center gap-2 px-5 py-3 text-zinc-500 hover:text-zinc-300 font-medium text-sm rounded-xl transition-all duration-200 cursor-pointer border border-white/[0.06] hover:border-white/[0.12]">
               Withdraw Assets First
-            </a>
+            </Link>
           </div>
         </div>
       </div>
