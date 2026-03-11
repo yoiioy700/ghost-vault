@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { Clock, Shield, EyeOff, Bot } from "lucide-react";
+import { Clock, EyeOff, Bot } from "lucide-react";
+import { GhostVaultLogo } from "@/components/GhostVaultLogo";
 
 // ─── FAQ Data ────────────────────────────────────────────────
 const faqs = [
@@ -51,7 +52,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 group cursor-pointer">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 flex items-center justify-center group-hover:border-purple-500/50 transition-colors">
-              <Shield className="w-5 h-5 text-zinc-300 group-hover:text-white transition-colors" />
+              <GhostVaultLogo className="w-5 h-5 text-zinc-300 group-hover:text-white transition-colors" />
             </div>
             <span className="text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
               Ghost Vault
@@ -360,7 +361,7 @@ export default function LandingPage() {
       <footer className="border-t border-white/[0.05] bg-[#050508] relative z-20">
         <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <Shield className="w-5 h-5 text-zinc-600" />
+            <GhostVaultLogo className="w-5 h-5 text-zinc-600" />
             <span className="text-sm font-bold text-zinc-400">Ghost Vault</span>
             <span className="text-xs text-zinc-600 ml-4 hidden sm:inline-block">© {new Date().getFullYear()} All rights reserved</span>
           </div>

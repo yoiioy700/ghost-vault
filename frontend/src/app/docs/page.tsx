@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Shield, ChevronDown, ChevronRight, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Menu, X } from "lucide-react";
+import { GhostVaultLogo } from "@/components/GhostVaultLogo";
 
 const CONTRACT_ADDRESS = "0x0315fb4e47f77a02df237a55538e35cfdafb2b32920e9b942fbcd3791f18e0c4";
 
@@ -129,7 +130,7 @@ export default function DocsPage() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="w-8 h-8 rounded-lg bg-[#111] flex items-center justify-center border border-white/[0.08] group-hover:border-violet-500/40 transition-colors">
-              <Shield className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
+              <GhostVaultLogo className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
             </div>
             <span className="text-sm font-bold text-zinc-300 group-hover:text-white transition-colors tracking-tight">Ghost Vault</span>
           </Link>
