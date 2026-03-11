@@ -1,36 +1,99 @@
-# Ghost Vault 👻 
+<div align="center">
+  <img src="https://raw.githubusercontent.com/yoiioy700/ghost-vault/main/frontend/public/logo.png" alt="Ghost Vault Logo" width="180" />
 
-**Re{define} Hackathon Submission - Privacy Track**
+  # Ghost Vault
 
-Ghost Vault is a **decentralized inheritance protocol and Dead Man's Switch** built natively on Starknet. It ensures that your crypto assets (like STRK or bridged BTC) are secure while you live, and trustlessly transfer to your designated beneficiaries if the worst happens.
+  **A Decentralized Dead-Man's Switch & Inheritance Protocol Built on Starknet**
 
-## The Problem
-Self-custody is the ultimate financial freedom, but it carries a fatal flaw: if you die or lose access to your keys, your wealth is lost forever. Traditional inheritance processes are slow, public, require trusting centralized intermediaries (lawyers, banks), and completely contradict the ethos of web3.
+  [![Starknet](https://img.shields.io/badge/Starknet-Network-blueviolet?style=flat-square&logo=starknet)](https://starknet.io/)
+  [![Cairo](https://img.shields.io/badge/Cairo-1.0-orange?style=flat-square)](https://docs.cairo-lang.org/)
+  [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+  [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
+</div>
 
-## The Solution: Ghost Vault
-Ghost Vault leverages Starknet's scalable infrastructure to provide a **trustless, automated** inheritance protocol for your assets. Users can deploy their own personal vault directly from the Dapp. 
+---
 
-### How it works:
-1. **Secure**: You deposit your assets (e.g. STRK) into your Ghost Vault on the Starknet protocol. While locked, your assets remain non-custodial.
-2. **The Heartbeat (Dead Man's Switch)**: You set a periodic "check-in" interval (e.g., every 30 days). As long as you interact with the vault ("ping" it) before the timer runs out, you prove you are alive, and the vault remains locked and yielding.
-3. **Trustless Execution**: If you fail to check in and the countdown hits zero, the Dead Man's Switch is triggered. Anyone can call the `trigger_inheritance` function, which automatically and instantly transfers 100% of your principal and accumulated yield to your predefined beneficiary address.
+## Overview
 
-## Hackathon Narrative Alignment (Privacy Track)
-* **Privacy Innovation**: Inheritance is a neglected area in DeFi. By building on Starknet, Ghost Vault utilizes cheap computation and scalable state to handle constant "ping" transactions (check-ins) without pricing out users. This creates a highly accessible web3 will-and-testament primitive.
-* **Non-Custodial Focus**: It solves the biggest UX hurdle of self-custody: generational wealth transfer without relying on centralized layers.
+Ghost Vault is a trustless, privacy-preserving inheritance protocol that utilizes a chronological heartbeat mechanism on the Starknet blockchain. It solves the critical issue of self-custody asset loss by acting as a decentralized dead-man's switch.
 
-## Features
-- **Non-custodial**: You are the only one who can deposit and withdraw (while alive).
-- **Fully On-Chain**: No centralized servers or oracles are managing the Dead Man's Switch. The Starknet blockchain is the single source of truth for time and execution.
-- **Dynamic UI**: A beautiful, responsive frontend that visually communicates the urgency of the check-in period.
+Users deploy a vault, lock their assets, and designate a beneficiary address. As long as the primary owner performs a periodic on-chain "check-in," the assets remain mathematically secured. If the check-in deadline and subsequent grace period expire without activity, the smart contract permits the designated beneficiary to claim the vault's contents.
 
-## Deployed Addresses (Starknet Sepolia Testnet)
-* **Ghost Vault Protocol Contract**: `0x0315fb4e47f77a02df237a55538e35cfdafb2b32920e9b942fbcd3791f18e0c4`
+### Technical Highlights
+
+- **The Heartbeat Mechanism:** Cryptographically reset the vault's timelock with a low-cost Starknet transaction.
+- **Trustless Execution:** Asset transfer logic is strictly enforced by Cairo smart contracts, requiring zero intermediary trust.
+- **Yield Integration:** Architected to support native yield generation on deposited assets while they remain locked.
+- **Starknet Scalability:** Leverages ZK-Rollup architecture to ensure low gas footprint for frequent heartbeat transactions.
+- **Optimized Client Interface:** Responsive, client-side application utilizing Next.js App Router, Tailwind CSS v4, and modern Starknet wallet connectors.
+
+---
+
+## Tech Stack
+
+### Protocol (Smart Contracts)
+- **Language:** Cairo 1.0
+- **Framework:** Scarb
+- **Testing & Tooling:** Starknet Foundry (`snforge`, `sncast`)
+
+### Client Application (Frontend)
+- **Framework:** Next.js (React 19)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS v4, Framer Motion
+- **Web3 Integration:** Starknet.js, StarknetKit, `@starknet-react/core`
+- **Package Manager:** Yarn
+
+---
+
+## Architecture Flow
+
+The standard lifecycle of a Ghost Vault operates as follows:
+
+1. **Vault Configuration:** User initiates the vault, defining the `check_in_period` (e.g., 90 days), `grace_period`, and the `beneficiary_address`.
+2. **Asset Allocation:** Standard Starknet tokens (implementing the `u256` interface) are deposited and locked within the contract.
+3. **Heartbeat Maintenance:** The owner executes the `checkin()` function periodically before the deadline to maintain control.
+4. **Inheritance Trigger:** If the maximum time threshold is breached, the beneficiary gains the right to execute `trigger_inheritance()` and withdraw the assets.
+
+---
 
 ## Local Development
+
+### Prerequisites
+Ensure you have the following dependencies active in your environment:
+- Node.js (v18+) & Yarn
+- Scarb (Cairo package manager)
+- Starknet Foundry
+
+### 1. Repository Setup
 ```bash
 git clone https://github.com/yoiioy700/ghost-vault.git
-cd ghost-vault/frontend
+cd ghost-vault
+```
+
+### 2. Smart Contracts Environment
+Navigate to the contracts directory to compile or test the Cairo codebase.
+```bash
+cd contracts
+
+# Compile the Cairo contracts
+scarb build
+
+# Execute the test suite
+snforge test
+```
+
+> **Note:** For deployment to Starknet Sepolia/Mainnet, configure your `snfoundry.toml` with the appropriate RPC node and execute `sncast declare` followed by `sncast deploy`.
+
+### 3. Frontend Environment
+Navigate to the frontend directory to initialize the local server.
+```bash
+cd ../frontend
+
+# Install node dependencies
 yarn install
+
+# Initialize local development environment
 yarn dev
 ```
+
+Access `http://localhost:3000` to view the client application. Ensure you have Argent X or Braavos installed in your browser to test transaction signing.
