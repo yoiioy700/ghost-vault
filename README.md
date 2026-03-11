@@ -9,7 +9,7 @@
   [![Cairo](https://img.shields.io/badge/Cairo-1.0-orange?style=flat-square)](https://docs.cairo-lang.org/)
   [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
   [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-  [![Live Demo](https://img.shields.io/badge/Live%20Demo-ghost--vault--yoiioy.vercel.app-violet?style=flat-square)](https://ghost-vault-yoiioy.vercel.app)
+  [![Live Demo](https://img.shields.io/badge/Live%20Demo-ghost--vault--app.vercel.app-violet?style=flat-square)](https://ghost-vault-app.vercel.app)
 </div>
 
 ---
