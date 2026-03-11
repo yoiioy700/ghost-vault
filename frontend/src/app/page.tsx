@@ -212,7 +212,7 @@ export default function LandingPage() {
 
           <motion.div variants={fadeUp} className="glass-panel p-8 flex flex-col justify-between group">
             <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
-              <Shield className="w-6 h-6 text-blue-400" />
+              <GhostVaultLogo className="w-6 h-6 text-blue-400" />
             </div>
             <div>
               <h3 className="text-xl font-bold mb-2">100% On-Chain</h3>
