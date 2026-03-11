@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yoiioy700/ghost-vault/main/frontend/public/logo.png" alt="Ghost Vault Logo" width="180" />
+  <img src="https://raw.githubusercontent.com/yoiioy700/ghost-vault/main/frontend/public/logo.svg" alt="Ghost Vault Logo" width="180" />
 
   # Ghost Vault
 
