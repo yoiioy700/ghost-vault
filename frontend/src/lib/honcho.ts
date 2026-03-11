@@ -22,5 +22,17 @@ export const HonchoMemory = {
             }
         }
         return null;
+    },
+    addActivity: (label: string, type: string = "success") => {
+        if (typeof window !== 'undefined') {
+            try {
+                const prev = HonchoMemory.load("activities") || [];
+                const newItem = { label, type, ts: Math.floor(Date.now() / 1000) };
+                const updated = [newItem, ...prev].slice(0, 50);
+                HonchoMemory.save("activities", updated);
+            } catch (e) {
+                console.error("[Honcho Sync] Failed to add activity", e);
+            }
+        }
     }
 };

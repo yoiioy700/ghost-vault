@@ -16,11 +16,11 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
     const rpc = (chain: any) => {
         switch (chain.id) {
             case sepolia.id:
-                return { nodeUrl: "https://free-rpc.nethermind.io/sepolia-juno" };
+                return { nodeUrl: "https://api.cartridge.gg/x/starknet/sepolia" };
             case mainnet.id:
-                return { nodeUrl: "https://free-rpc.nethermind.io/mainnet-juno" };
+                return { nodeUrl: "https://api.cartridge.gg/x/starknet/mainnet" };
             default:
-                return { nodeUrl: "https://free-rpc.nethermind.io/sepolia-juno" };
+                return { nodeUrl: "https://api.cartridge.gg/x/starknet/sepolia" };
         }
     };
     const provider = jsonRpcProvider({ rpc });
