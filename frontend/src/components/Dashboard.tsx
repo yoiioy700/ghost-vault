@@ -58,7 +58,7 @@ function Sidebar({ address, onDisconnect }: { address: string; onDisconnect: () 
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium px-3 mb-3">Main Menu</p>
         {NAV_ITEMS.map((item) => (
-          <a
+          <Link
             key={item.label}
             href={item.href}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
@@ -69,7 +69,7 @@ function Sidebar({ address, onDisconnect }: { address: string; onDisconnect: () 
           >
             {item.icon}
             <span className="text-sm font-medium">{item.label}</span>
-          </a>
+          </Link>
         ))}
       </nav>
 
@@ -233,7 +233,7 @@ export default function Dashboard() {
   }
 
   return (
-    <AuthLock>
+    <AuthLock skipAuth={!vaultActive}>
       {(authMode) => {
         // ---- FORCED DECOY STATE OVERRIDES ----
         const isDecoy = authMode === "decoy";

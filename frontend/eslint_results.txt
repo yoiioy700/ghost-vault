@@ -1,0 +1,210 @@
+
+> frontend@0.1.0 lint
+> eslint
+
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/check-rpc.js
+  1:15  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/app/docs/page.tsx
+  156:14  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/app/docs/page.tsx:156:14
+  154 |         <div className="fixed inset-0 z-40 pt-16 bg-[#0a0a0a] md:hidden">
+  155 |           <div className="p-6">
+> 156 |             <SidebarNav />
+      |              ^^^^^^^^^^ This component is created during render
+  157 |           </div>
+  158 |         </div>
+  159 |       )}
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/app/docs/page.tsx:104:22
+  102 |   };
+  103 |
+> 104 |   const SidebarNav = () => (
+      |                      ^^^^^^^
+> 105 |     <nav className="space-y-0.5">
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 106 |       <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium px-3 mb-3">Contents</p>
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 121 |     </nav>
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 122 |   );
+      | ^^^^ The component is created during render here
+  123 |
+  124 |   return (
+  125 |     <div className="min-h-screen bg-[#050507] text-white font-sans" style={{ scrollBehavior: "smooth" }}>                                                                                                              react-hooks/static-components
+  164:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/app/docs/page.tsx:164:12
+  162 |         {/* ─── Desktop Sidebar ─── */}
+  163 |         <aside className="hidden md:flex flex-col fixed top-16 left-0 h-[calc(100vh-4rem)] w-56 bg-[#0a0a0a] border-r border-white/[0.06] z-30 p-4 overflow-y-auto">
+> 164 |           <SidebarNav />
+      |            ^^^^^^^^^^ This component is created during render
+  165 |         </aside>
+  166 |
+  167 |         {/* ─── Main Content ─── */}
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/app/docs/page.tsx:104:22
+  102 |   };
+  103 |
+> 104 |   const SidebarNav = () => (
+      |                      ^^^^^^^
+> 105 |     <nav className="space-y-0.5">
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 106 |       <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium px-3 mb-3">Contents</p>
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 121 |     </nav>
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 122 |   );
+      | ^^^^ The component is created during render here
+  123 |
+  124 |   return (
+  125 |     <div className="min-h-screen bg-[#050507] text-white font-sans" style={{ scrollBehavior: "smooth" }}>  react-hooks/static-components
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/app/page.tsx
+  205:63  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/components/AuthLock.tsx
+  26:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/components/AuthLock.tsx:26:7
+  24 |     const prefs = HonchoMemory.load("wizard_prefs");
+  25 |     if (prefs && prefs.mainPIN && prefs.duressPIN) {
+> 26 |       setHasPinsSet(true);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  27 |       setMainPin(prefs.mainPIN);
+  28 |       setDuressPin(prefs.duressPIN);
+  29 |     } else {                                                         react-hooks/set-state-in-effect
+  63:33  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/components/AuthLock.tsx:63:33
+  61 |     // Auto-submit if 4-6 digits and it matches exactly
+  62 |     if (pinInput.length >= 4) {
+> 63 |       if (pinInput === mainPin) setAuthMode("real");
+     |                                 ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  64 |       else if (pinInput === duressPin) setAuthMode("decoy");
+  65 |     }
+  66 |   }, [pinInput, mainPin, duressPin]);  react-hooks/set-state-in-effect
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/components/Dashboard.tsx
+    6:10  warning  'AlertCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   26:7   warning  'IconYield' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   31:7   warning  'IconActivity' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  124:29  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  129:60  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  129:96  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  130:55  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  130:89  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  131:53  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  131:86  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  132:51  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  132:82  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  145:26  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/components/Dashboard.tsx:145:26
+  143 |   const periodFromContract = periodU64 ? Number(periodU64) : 0;
+  144 |   const period = periodFromContract > 0 ? periodFromContract : (memory?.period ? Number(memory.period) * 86400 : 30 * 86400);
+> 145 |   const now = Math.floor(Date.now() / 1000);
+      |                          ^^^^^^^^^^ Cannot call impure function
+  146 |   const timeRemainingSeconds = deadlineTimestamp > now ? deadlineTimestamp - now : 0;
+  147 |   const daysRemaining = Math.ceil(timeRemainingSeconds / 86400);
+  148 |                                                                                                                                                                                                                                                                 react-hooks/purity
+  172:7   error    Error: Cannot access variable before it is declared
+
+`loadLocalActivity` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/components/Dashboard.tsx:172:7
+  170 |     if (checkinData) {
+  171 |       HonchoMemory.addActivity("Check-in confirmed");
+> 172 |       loadLocalActivity();
+      |       ^^^^^^^^^^^^^^^^^ `loadLocalActivity` accessed before it is declared
+  173 |     }
+  174 |   }, [checkinData]);
+  175 |
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/components/Dashboard.tsx:183:3
+  181 |   }, [claimData]);
+  182 |
+> 183 |   const loadLocalActivity = () => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 184 |     const raw = HonchoMemory.load("activities") || [];
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 185 |     setActivity(raw.map((r: any) => ({ ...r, time: relativeTime(r.ts) })));
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 186 |   };
+      | ^^^^^ `loadLocalActivity` is declared here
+  187 |
+  188 |   // ── Fetch local activity ──
+  189 |   useEffect(() => {  react-hooks/immutability
+  185:29  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  201:31  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  209:54  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  218:11  error    Do not use an `<a>` element to navigate to `/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @next/next/no-html-link-for-pages
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/components/SetupWizard.tsx
+   25:7   warning  'IconLock' is assigned a value but never used                                                                                                          @typescript-eslint/no-unused-vars
+   62:7   error    Do not use an `<a>` element to navigate to `/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages  @next/next/no-html-link-for-pages
+  130:94  error    Unexpected any. Specify a different type                                                                                                               @typescript-eslint/no-explicit-any
+  131:77  error    Unexpected any. Specify a different type                                                                                                               @typescript-eslint/no-explicit-any
+  143:29  error    Unexpected any. Specify a different type                                                                                                               @typescript-eslint/no-explicit-any
+  146:57  error    Unexpected any. Specify a different type                                                                                                               @typescript-eslint/no-explicit-any
+  151:58  error    Unexpected any. Specify a different type                                                                                                               @typescript-eslint/no-explicit-any
+  152:59  error    Unexpected any. Specify a different type                                                                                                               @typescript-eslint/no-explicit-any
+  226:54  error    Unexpected any. Specify a different type                                                                                                               @typescript-eslint/no-explicit-any
+  289:9   error    Do not use an `<a>` element to navigate to `/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages  @next/next/no-html-link-for-pages
+  317:34  warning  'i' is defined but never used                                                                                                                          @typescript-eslint/no-unused-vars
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/components/StarknetProvider.tsx
+  16:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  76:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/src/lib/honcho.ts
+  2:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/test-crash.js
+  1:19  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/test-strk.js
+  1:32  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/test_rpc.js
+  1:22  warning  'hash' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  1:31  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/test_rpc2.js
+  1:22  warning  'hash' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  1:31  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/test_rpc3.js
+  1:25  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/test_rpc4.js
+  1:25  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/root/.gemini/antigravity/scratch/ghost-vault/frontend/test_rpc5.js
+  1:25  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+✖ 48 problems (41 errors, 7 warnings)
+

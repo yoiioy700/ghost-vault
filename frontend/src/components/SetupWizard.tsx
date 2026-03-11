@@ -69,14 +69,14 @@ function Sidebar({ address, onDisconnect }: { address: string; onDisconnect: () 
       </Link>
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium px-3 mb-3">Main Menu</p>
-        <a href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]">
+        <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]">
           <IconDashboard />
           <span className="text-sm font-medium">Dashboard</span>
-        </a>
-        <a href="/dashboard/setup" className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all bg-white/[0.05] text-white border-l-2 border-violet-500 pl-[10px]">
+        </Link>
+        <Link href="/dashboard/setup" className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all bg-white/[0.05] text-white border-l-2 border-violet-500 pl-[10px]">
           <IconVaultSettings />
           <span className="text-sm font-medium">Vault Settings</span>
-        </a>
+        </Link>
       </nav>
       <div className="p-4 border-t border-white/[0.06] shrink-0">
         <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] mb-2">

@@ -5,10 +5,11 @@ import { HonchoMemory } from "@/lib/honcho";
 
 interface AuthLockProps {
   children: (authMode: "real" | "decoy" | "locked") => React.ReactNode;
+  skipAuth?: boolean;
 }
 
-export default function AuthLock({ children }: AuthLockProps) {
-  const [authMode, setAuthMode] = useState<"real" | "decoy" | "locked">("locked");
+export default function AuthLock({ children, skipAuth }: AuthLockProps) {
+  const [authMode, setAuthMode] = useState<"real" | "decoy" | "locked">(skipAuth ? "real" : "locked");
   const [pinInput, setPinInput] = useState("");
   const [error, setError] = useState(false);
   
