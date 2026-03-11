@@ -108,7 +108,7 @@ export default function Dashboard() {
   const extraBeneficiaries: { address: string; pct: number }[] = memory?.extraBeneficiaries || [];
   const primaryPct = 100 - extraBeneficiaries.reduce((s: number, b: { pct: number }) => s + b.pct, 0);
 
-  const { data: vaultStatus } = useReadContract({
+  const { data: vaultStatus, isLoading: isVaultLoading } = useReadContract({
     functionName: "get_vault",
     args: address ? [address] : [],
     abi: GHOST_VAULT_ABI as any,
@@ -228,6 +228,14 @@ export default function Dashboard() {
             Connect Wallet
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (isVaultLoading) {
+    return (
+      <div className="min-h-screen bg-[#050507] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-zinc-700 border-t-white rounded-full animate-spin" />
       </div>
     );
   }
