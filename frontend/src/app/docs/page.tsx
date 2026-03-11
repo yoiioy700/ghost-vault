@@ -101,7 +101,7 @@ export default function DocsPage() {
     setMobileNavOpen(false);
   };
 
-  const SidebarNav = () => (
+  const sidebarNav = (
     <nav className="space-y-0.5">
       <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium px-3 mb-3">Contents</p>
       {NAV_ITEMS.map((item) => (
@@ -153,7 +153,7 @@ export default function DocsPage() {
       {mobileNavOpen && (
         <div className="fixed inset-0 z-40 pt-16 bg-[#0a0a0a] md:hidden">
           <div className="p-6">
-            <SidebarNav />
+            {sidebarNav}
           </div>
         </div>
       )}
@@ -161,7 +161,7 @@ export default function DocsPage() {
       <div className="flex pt-16 relative z-10">
         {/* ─── Desktop Sidebar ─── */}
         <aside className="hidden md:flex flex-col fixed top-16 left-0 h-[calc(100vh-4rem)] w-56 bg-[#0a0a0a] border-r border-white/[0.06] z-30 p-4 overflow-y-auto">
-          <SidebarNav />
+          {sidebarNav}
         </aside>
 
         {/* ─── Main Content ─── */}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export const HonchoMemory = {
     save: (key: string, data: any) => {
         if (typeof window !== 'undefined') {

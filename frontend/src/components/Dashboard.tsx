@@ -1,8 +1,10 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useAccount, useReadContract, useSendTransaction, useDisconnect, useConnect } from "@starknet-react/core";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { useMemo, useState, useEffect } from "react";
+import Link from "next/link";
 import { GHOST_VAULT_ADDRESS, GHOST_VAULT_ABI } from "@/lib/contract";
 import { HonchoMemory } from "@/lib/honcho";
 import WithdrawModal from "./WithdrawModal";
@@ -19,16 +21,6 @@ const IconDashboard = () => (
 const IconVault = () => (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-  </svg>
-);
-const IconYield = () => (
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-  </svg>
-);
-const IconActivity = () => (
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
   </svg>
 );
 const IconLock = () => (
@@ -140,6 +132,7 @@ export default function Dashboard() {
   const deadlineTimestamp = deadlineU64 ? Number(deadlineU64) : 0;
   const periodFromContract = periodU64 ? Number(periodU64) : 0;
   const period = periodFromContract > 0 ? periodFromContract : (memory?.period ? Number(memory.period) * 86400 : 30 * 86400);
+  // eslint-disable-next-line react-hooks/purity
   const now = Math.floor(Date.now() / 1000);
   const timeRemainingSeconds = deadlineTimestamp > now ? deadlineTimestamp - now : 0;
   const daysRemaining = Math.ceil(timeRemainingSeconds / 86400);
@@ -163,6 +156,11 @@ export default function Dashboard() {
   const { send, isPending, data: checkinData } = useSendTransaction({ calls });
   const { send: sendClaim, isPending: isClaiming, data: claimData } = useSendTransaction({ calls: claimCalls });
 
+  const loadLocalActivity = () => {
+    const raw = HonchoMemory.load("activities") || [];
+    setActivity(raw.map((r: any) => ({ ...r, time: relativeTime(r.ts) })));
+  };
+
   // Add activity on transaction success
   useEffect(() => {
     if (checkinData) {
@@ -177,11 +175,6 @@ export default function Dashboard() {
       loadLocalActivity();
     }
   }, [claimData]);
-
-  const loadLocalActivity = () => {
-    const raw = HonchoMemory.load("activities") || [];
-    setActivity(raw.map((r: any) => ({ ...r, time: relativeTime(r.ts) })));
-  };
 
   // ── Fetch local activity ──
   useEffect(() => {
@@ -213,12 +206,12 @@ export default function Dashboard() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#050507] text-zinc-100 font-sans px-4">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(139,92,246,0.08),transparent_50%)] pointer-events-none" />
         <div className="fixed top-0 inset-x-0 h-16 border-b border-white/[0.06] bg-black/80 backdrop-blur-md flex items-center px-6 z-50">
-          <a href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-md bg-[#111] flex items-center justify-center border border-white/[0.08]">
               <IconLock />
             </div>
             <span className="text-sm font-medium text-zinc-300">Ghost Vault</span>
-          </a>
+          </Link>
         </div>
         <div className="flex flex-col items-center justify-center p-10 rounded-2xl bg-white/[0.02] backdrop-blur-sm border border-white/[0.06] shadow-2xl max-w-md w-full text-center relative z-10">
           <div className="w-14 h-14 rounded-full bg-[#111] mb-6 flex items-center justify-center border border-white/[0.06]">
@@ -285,9 +278,9 @@ export default function Dashboard() {
                     <p className="text-sm font-semibold text-amber-400 mb-0.5">No vault active</p>
                     <p className="text-xs text-zinc-500">Set up a vault to start protecting your crypto with a dead man&apos;s switch.</p>
                   </div>
-                  <a href="/dashboard/setup" className="shrink-0 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-sm font-semibold rounded-xl transition-colors whitespace-nowrap shadow-[0_0_20px_rgba(139,92,246,0.3)]">
+                  <Link href="/dashboard/setup" className="shrink-0 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-sm font-semibold rounded-xl transition-colors whitespace-nowrap shadow-[0_0_20px_rgba(139,92,246,0.3)]">
                     Create Vault →
-                  </a>
+                  </Link>
                 </div>
 
                 <div className="mb-6">

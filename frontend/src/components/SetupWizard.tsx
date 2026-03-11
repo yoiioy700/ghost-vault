@@ -1,6 +1,9 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import React, { useState, useMemo } from "react";
+import Link from "next/link";
 import { useAccount, useSendTransaction, useReadContract, useContract, useConnect, useDisconnect } from "@starknet-react/core";
 import { useStarknetkitConnectModal } from "starknetkit";
 import { GHOST_VAULT_ADDRESS, GHOST_VAULT_ABI } from "@/lib/contract";
@@ -58,12 +61,12 @@ type BeneficiaryEntry = { id: number; address: string; pct: number };
 function Sidebar({ address, onDisconnect }: { address: string; onDisconnect: () => void }) {
   return (
     <aside className="hidden md:flex fixed top-0 left-0 h-full w-64 flex-col bg-[#0a0a0a] border-r border-white/[0.06] z-40">
-      <a href="/" className="flex items-center gap-2.5 px-5 h-16 border-b border-white/[0.06] shrink-0 hover:bg-white/[0.02] transition-colors">
+      <Link href="/" className="flex items-center gap-2.5 px-5 h-16 border-b border-white/[0.06] shrink-0 hover:bg-white/[0.02] transition-colors">
         <div className="w-7 h-7 rounded-md bg-[#111] flex items-center justify-center border border-white/[0.08]">
           <IconLock />
         </div>
         <span className="text-sm font-semibold text-white tracking-tight">Ghost Vault</span>
-      </a>
+      </Link>
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium px-3 mb-3">Main Menu</p>
         <a href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]">
@@ -285,11 +288,11 @@ export default function SetupWizard() {
 
       {/* Mobile top nav */}
       <nav className="md:hidden h-16 border-b border-white/[0.06] bg-[#0a0a0a] flex items-center justify-between px-6 sticky top-0 z-50">
-        <a href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-md bg-[#111] flex items-center justify-center border border-white/[0.08]"><IconLock /></div>
           <span className="text-sm font-medium text-zinc-300">Ghost Vault</span>
-        </a>
-        <a href="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">← Dashboard</a>
+        </Link>
+        <Link href="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">← Dashboard</Link>
       </nav>
 
       <main className="md:ml-64 p-6 md:p-8 relative z-10 min-h-screen">

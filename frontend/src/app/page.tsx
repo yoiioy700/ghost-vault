@@ -203,7 +203,7 @@ export default function LandingPage() {
               <Clock className="w-7 h-7 text-purple-400" />
             </div>
             <div className="relative z-10">
-              <h3 className="text-3xl font-bold mb-4">Dead Man's Switch</h3>
+              <h3 className="text-3xl font-bold mb-4">Dead Man&apos;s Switch</h3>
               <p className="text-zinc-400 text-lg max-w-md leading-relaxed">
                 Automated inheritance triggered entirely on-chain. If you stop checking in within your defined timeframe, your assets safely transfer to your beneficiary.
               </p>
